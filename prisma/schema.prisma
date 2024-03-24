@@ -22,3 +22,169 @@ model Recipe {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
+model Role {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  createdAt DateTime   @default(now())
+  updateAt  DateTime   @updatedAt
+  RoleMenu  RoleMenu[]
+  Users     Users[]
+}
+
+model Menu {
+  id        Int        @id @default(autoincrement())
+  title     String     @unique
+  seq       Int
+  path      String
+  icon      String?
+  createdAt DateTime   @default(now())
+  updateAt  DateTime   @updatedAt
+  RoleMenu  RoleMenu[]
+}
+
+model RoleMenu {
+  id        Int      @id @default(autoincrement())
+  role      Role     @relation(fields: [roleId], references: [id])
+  roleId    Int
+  menu      Menu     @relation(fields: [menuId], references: [id])
+  menuId    Int
+  createdAt DateTime @default(now())
+  updateAt  DateTime @updatedAt
+}
+
+model Users {
+  id              Int               @id @default(autoincrement())
+  password        String
+  nik             String            @unique
+  name            String
+  role            Role              @relation(fields: [roleId], references: [id])
+  roleId          Int
+  coop            Coop              @relation(fields: [coopId], references: [id])
+  coopId          Int
+  email           String?
+  phone           String?
+  avatar          String
+  is_active       Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  updateAt        DateTime          @updatedAt
+  ProgressSOP     ProgressSOP[]
+  CoopDiagnostics CoopDiagnostics[]
+}
+
+model Coop {
+  id              Int               @id @default(autoincrement())
+  name            String
+  nik             String            @unique
+  address         String
+  createdAt       DateTime          @default(now())
+  updateAt        DateTime          @updatedAt
+  Users           Users[]
+  FeedsMedicines  FeedsMedicines[]
+  EggProduction   EggProduction[]
+  CoopDiagnostics CoopDiagnostics[]
+}
+
+model Cashflow {
+  id         Int      @id @default(autoincrement())
+  periode    DateTime @db.Date
+  trans_date DateTime
+  tipe       String
+  nominal    Int
+  total      Int
+  createdAt  DateTime @default(now())
+  updateAt   DateTime @updatedAt
+}
+
+model SOP {
+  id          Int      @id @default(autoincrement())
+  pic         String
+  title       String
+  description String
+  createdAt   DateTime @default(now())
+  updateAt    DateTime @updatedAt
+}
+
+model ProgressSOP {
+  id        Int      @id @default(autoincrement())
+  user      Users    @relation(fields: [userId], references: [id])
+  userId    Int
+  detail    Json
+  createdAt DateTime @default(now())
+  updateAt  DateTime @updatedAt
+}
+
+model FeedsMedicines {
+  id                    Int                     @id @default(autoincrement())
+  SKU                   String                  @unique
+  coop                  Coop                    @relation(fields: [coopId], references: [id])
+  coopId                Int
+  name                  String
+  quantity              Int
+  uom                   String?
+  price                 Int
+  total                 Int
+  createdAt             DateTime                @default(now())
+  updateAt              DateTime                @updatedAt
+  HistoryFeedsMedicines HistoryFeedsMedicines[]
+  CoopDiagnostics       CoopDiagnostics[]
+}
+
+model HistoryFeedsMedicines {
+  id        Int            @id @default(autoincrement())
+  feed      FeedsMedicines @relation(fields: [feedId], references: [id])
+  feedId    Int
+  quantity  Int
+  tipe      String
+  transDate DateTime
+  createdAt DateTime       @default(now())
+  updateAt  DateTime       @updatedAt
+}
+
+model EggProduction {
+  id              Int      @id @default(autoincrement())
+  coop            Coop     @relation(fields: [coopId], references: [id])
+  coopId          Int
+  transDate       DateTime
+  ageInDay        Int
+  ageInWeek       Int
+  pop             Int
+  m               Int
+  afk             Int
+  sell            Int
+  finalPop        Int
+  feedType        String
+  feedWeight      Int
+  feedFIT         Decimal
+  prodPieceN      Int
+  prodPieceP      Int
+  prodPieceBS     Int
+  prodTotalPiece  Int
+  prodWeightN     Decimal
+  prodWeightP     Decimal
+  prodWeightBS    Decimal
+  prodTotalWeight Decimal
+  HD              Decimal
+  FCR             Decimal
+  EggWeight       Decimal
+  EggMass         Decimal
+  OVK             Decimal
+  createdAt       DateTime @default(now())
+  updateAt        DateTime @updatedAt
+}
+
+model CoopDiagnostics {
+  id         Int             @id @default(autoincrement())
+  coop       Coop            @relation(fields: [coopId], references: [id])
+  coopId     Int
+  transDate  DateTime
+  disease    String
+  medicine   FeedsMedicines? @relation(fields: [medicineId], references: [id])
+  medicineId Int?
+  dose       Int?
+  status     String?
+  reporter   Users           @relation(fields: [reporterId], references: [id])
+  reporterId Int
+  createdAt  DateTime        @default(now())
+  updateAt   DateTime        @updatedAt
+}

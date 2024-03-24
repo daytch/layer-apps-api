@@ -10,6 +10,7 @@ import {
 import { RecipeService } from './recipe.service';
 import { CreateRecipeDto } from './dto/create-recipe.dto';
 import { UpdateRecipeDto } from './dto/update-recipe.dto';
+import { Public } from '../auth/constants';
 
 @Controller('recipe')
 export class RecipeController {
@@ -20,6 +21,7 @@ export class RecipeController {
     return this.recipeService.create(createRecipeDto);
   }
 
+  @Public()
   @Get()
   findAll() {
     return this.recipeService.findAll();
