@@ -1,5 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // prisma/seed.ts
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
+
+const saltOrRounds = 12;
 
 // initialize Prisma Client
 const prisma = new PrismaClient();
@@ -75,75 +79,150 @@ async function main() {
   });
 
   // create roleMenu
-  const rm1 = await prisma.roleMenu.upsert({
+  await prisma.roleMenu.upsert({
     where: { id: 1 },
     update: {},
     create: { roleId: 1, menuId: 1 },
   });
-  const rm2 = await prisma.roleMenu.upsert({
+  await prisma.roleMenu.upsert({
     where: { id: 2 },
     update: {},
     create: { roleId: 1, menuId: 2 },
   });
-  const rm3 = await prisma.roleMenu.upsert({
+  await prisma.roleMenu.upsert({
     where: { id: 3 },
     update: {},
     create: { roleId: 1, menuId: 3 },
   });
-  const rm4 = await prisma.roleMenu.upsert({
+  await prisma.roleMenu.upsert({
     where: { id: 4 },
     update: {},
     create: { roleId: 1, menuId: 4 },
   });
-  const rm5 = await prisma.roleMenu.upsert({
+  await prisma.roleMenu.upsert({
     where: { id: 5 },
     update: {},
     create: { roleId: 1, menuId: 5 },
   });
-  const rm6 = await prisma.roleMenu.upsert({
+  await prisma.roleMenu.upsert({
     where: { id: 6 },
     update: {},
     create: { roleId: 1, menuId: 6 },
   });
-  const rm7 = await prisma.roleMenu.upsert({
+  await prisma.roleMenu.upsert({
     where: { id: 7 },
     update: {},
     create: { roleId: 1, menuId: 7 },
   });
-  const rm8 = await prisma.roleMenu.upsert({
+  await prisma.roleMenu.upsert({
     where: { id: 8 },
     update: {},
     create: { roleId: 1, menuId: 8 },
   });
-  const rm9 = await prisma.roleMenu.upsert({
+  await prisma.roleMenu.upsert({
     where: { id: 9 },
     update: {},
     create: { roleId: 1, menuId: 9 },
   });
+  // admin
+  await prisma.roleMenu.upsert({
+    where: { id: 10 },
+    update: {},
+    create: { roleId: 2, menuId: 1 },
+  });
+  await prisma.roleMenu.upsert({
+    where: { id: 11 },
+    update: {},
+    create: { roleId: 2, menuId: 2 },
+  });
+  await prisma.roleMenu.upsert({
+    where: { id: 12 },
+    update: {},
+    create: { roleId: 2, menuId: 3 },
+  });
+  await prisma.roleMenu.upsert({
+    where: { id: 13 },
+    update: {},
+    create: { roleId: 2, menuId: 4 },
+  });
+  await prisma.roleMenu.upsert({
+    where: { id: 14 },
+    update: {},
+    create: { roleId: 2, menuId: 5 },
+  });
+  await prisma.roleMenu.upsert({
+    where: { id: 15 },
+    update: {},
+    create: { roleId: 2, menuId: 6 },
+  });
+  await prisma.roleMenu.upsert({
+    where: { id: 16 },
+    update: {},
+    create: { roleId: 2, menuId: 7 },
+  });
+  await prisma.roleMenu.upsert({
+    where: { id: 17 },
+    update: {},
+    create: { roleId: 2, menuId: 9 },
+  });
+  // mandor
+  await prisma.roleMenu.upsert({
+    where: { id: 18 },
+    update: {},
+    create: { roleId: 3, menuId: 1 },
+  });
+  await prisma.roleMenu.upsert({
+    where: { id: 19 },
+    update: {},
+    create: { roleId: 3, menuId: 3 },
+  });
+  await prisma.roleMenu.upsert({
+    where: { id: 20 },
+    update: {},
+    create: { roleId: 3, menuId: 6 },
+  });
+  await prisma.roleMenu.upsert({
+    where: { id: 21 },
+    update: {},
+    create: { roleId: 3, menuId: 7 },
+  });
+  // anak kandang
+  await prisma.roleMenu.upsert({
+    where: { id: 22 },
+    update: {},
+    create: { roleId: 4, menuId: 1 },
+  });
+  await prisma.roleMenu.upsert({
+    where: { id: 23 },
+    update: {},
+    create: { roleId: 4, menuId: 7 },
+  });
 
-  console.log({
-    superadmin,
-    admin,
-    mandor,
-    anakkandang,
-    dashboard,
-    produksitelur,
-    stokpakanobat,
-    laporanbulanan,
-    grafikfcr,
-    diagnosiskandang,
-    sop,
-    cashflow,
-    usermanagement,
-    rm1,
-    rm2,
-    rm3,
-    rm4,
-    rm5,
-    rm6,
-    rm7,
-    rm8,
-    rm9,
+  // create kandang / Coop
+  await prisma.coop.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      name: 'Kandang 1',
+      nik: 'KD0001',
+      address: 'Jatisari, Batang',
+    },
+  });
+
+  // create user
+  await prisma.users.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      password: await bcrypt.hash('superadmin123', saltOrRounds),
+      nik: 'SA-123',
+      name: 'Superadmin',
+      roleId: 1,
+      coopId: 1,
+      email: 'me@nurulhidayat.com',
+      phone: '085866661326',
+      is_active: true,
+    },
   });
 }
 

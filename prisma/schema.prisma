@@ -55,8 +55,8 @@ model RoleMenu {
 
 model Users {
   id              Int               @id @default(autoincrement())
-  password        String
   nik             String            @unique
+  password        String
   name            String
   role            Role              @relation(fields: [roleId], references: [id])
   roleId          Int
@@ -64,7 +64,7 @@ model Users {
   coopId          Int
   email           String?
   phone           String?
-  avatar          String
+  avatar          String?
   is_active       Boolean           @default(true)
   createdAt       DateTime          @default(now())
   updateAt        DateTime          @updatedAt
