@@ -203,9 +203,54 @@ async function main() {
     where: { id: 1 },
     update: {},
     create: {
-      name: 'Kandang 1',
-      nik: 'KD0001',
-      address: 'Jatisari, Batang',
+      name: 'Kandang Belakang MTS',
+      nik: '1CKMTS',
+      address: 'Kandang Belakang MTS',
+    },
+  });
+  await prisma.coop.upsert({
+    where: { id: 2 },
+    update: {},
+    create: {
+      name: 'Kandang Belakang Lapangan',
+      nik: '2CKLAP',
+      address: 'Kandang Belakang Lapangan',
+    },
+  });
+  await prisma.coop.upsert({
+    where: { id: 3 },
+    update: {},
+    create: {
+      name: 'Kandang Jatisari A',
+      nik: '3CKJTSA',
+      address: 'Kandang Jatisari A',
+    },
+  });
+  await prisma.coop.upsert({
+    where: { id: 4 },
+    update: {},
+    create: {
+      name: 'Kandang Jatisari B',
+      nik: '4CKJTSB',
+      address: 'Kandang Jatisari B',
+    },
+  });
+  await prisma.coop.upsert({
+    where: { id: 5 },
+    update: {},
+    create: {
+      name: 'Kandang Mbungkus',
+      nik: '5CKBKS',
+      address: 'Kandang Mbungkus',
+    },
+  });
+  await prisma.coop.upsert({
+    where: { id: 6 },
+    update: {},
+    create: {
+      name: 'Kandang Sukorejo',
+      nik: '6CKSKH',
+      address: 'Kandang Sukorejo',
     },
   });
 
@@ -215,11 +260,53 @@ async function main() {
     update: {},
     create: {
       password: await bcrypt.hash('superadmin123', saltOrRounds),
-      nik: 'SA-123',
+      nik: 'CK-001',
       name: 'Superadmin',
       roleId: 1,
       coopId: 1,
       email: 'me@nurulhidayat.com',
+      phone: '085866661326',
+      is_active: true,
+    },
+  });
+  await prisma.users.upsert({
+    where: { id: 2 },
+    update: {},
+    create: {
+      password: await bcrypt.hash('admin123', saltOrRounds),
+      nik: 'CK-002',
+      name: 'Admin',
+      roleId: 2,
+      coopId: 1,
+      email: 'admin@yopmail.com',
+      phone: '085866661326',
+      is_active: true,
+    },
+  });
+  await prisma.users.upsert({
+    where: { id: 3 },
+    update: {},
+    create: {
+      password: await bcrypt.hash('mandor123', saltOrRounds),
+      nik: 'CK-003',
+      name: 'Mandor',
+      roleId: 3,
+      coopId: 1,
+      email: 'mandor@yopmail.com',
+      phone: '085866661326',
+      is_active: true,
+    },
+  });
+  await prisma.users.upsert({
+    where: { id: 4 },
+    update: {},
+    create: {
+      password: await bcrypt.hash('anakkandang123', saltOrRounds),
+      nik: 'CK-004',
+      name: 'Anak Kandang',
+      roleId: 4,
+      coopId: 1,
+      email: 'anak_kandang@yopmail.com',
       phone: '085866661326',
       is_active: true,
     },
