@@ -4,15 +4,61 @@ import { CreateUsersDto } from './dto/create-users.dto';
 import { UpdateUsersDto } from './dto/update-users.dto';
 // import { randomstring } from '../utils/randomizer.utils';
 import * as bcrypt from 'bcrypt';
+import { Users } from '@prisma/client';
 
-export type User = any;
 const saltOrRounds = 12;
+
+export interface IUser {
+  id: number;
+  nik: string;
+  name: string;
+  roleId: number;
+  coopId: number;
+  email: string;
+  phone: string;
+  avatar: string;
+  is_active: boolean;
+}
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findOne(username: string, pass: string): Promise<User | undefined> {
+  async findProfile(id: number): Promise<IUser | undefined> {
+    return await this.prisma.users.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        nik: true,
+        name: true,
+        roleId: true,
+        coopId: true,
+        email: true,
+        phone: true,
+        avatar: true,
+        is_active: true,
+      },
+    });
+  }
+
+  async getAllActiveUsers(): Promise<IUser[] | undefined> {
+    return await this.prisma.users.findMany({
+      where: { is_active: true },
+      select: {
+        id: true,
+        nik: true,
+        name: true,
+        roleId: true,
+        coopId: true,
+        email: true,
+        phone: true,
+        avatar: true,
+        is_active: true,
+      },
+    });
+  }
+
+  async findOne(username: string, pass: string): Promise<IUser | undefined> {
     const user = await this.prisma.users.findUnique({
       where: { nik: username },
     });
@@ -24,7 +70,17 @@ export class UsersService {
     if (!isMatch) {
       return null;
     }
-    return user;
+    return <IUser>{
+      id: user.id,
+      nik: user.nik,
+      name: user.name,
+      roleId: user.roleId,
+      coopId: user.coopId,
+      email: user.email,
+      phone: user.phone,
+      avatar: user.avatar,
+      is_active: user.is_active,
+    };
   }
   generateNIK = (total: number) => {
     let nik = `${total + 1}`;
@@ -35,7 +91,7 @@ export class UsersService {
   };
   async create(createUsersDto: CreateUsersDto) {
     try {
-      const users = await this.prisma.$queryRaw<User[]>`SELECT * FROM "Users"`;
+      const users = await this.prisma.$queryRaw<Users[]>`SELECT * FROM "Users"`;
 
       const dt = {
         nik: this.generateNIK(users.length),

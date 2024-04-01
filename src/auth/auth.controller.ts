@@ -5,15 +5,14 @@ import {
   HttpCode,
   HttpStatus,
   Post,
-  Request,
-  UseGuards,
+  Request
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { AuthGuard } from './auth.guard';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto/signIn.dto';
 import { Public } from '../auth/constants';
 
+@ApiBearerAuth()
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
@@ -26,7 +25,6 @@ export class AuthController {
     return this.authService.signIn(signInDto.username, signInDto.password);
   }
 
-  @UseGuards(AuthGuard)
   @Get('profile')
   getProfile(@Request() req) {
     return req.user;

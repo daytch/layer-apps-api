@@ -10,9 +10,9 @@ import {
 import { CoopService } from './coop.service';
 import { CreateCoopDto } from './dto/create-coop.dto';
 import { UpdateCoopDto } from './dto/update-coop.dto';
-import { Public } from '../auth/constants';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @ApiTags('Kandang')
 @Controller('coop')
 export class CoopController {
@@ -28,7 +28,6 @@ export class CoopController {
     return this.coopService.findAll();
   }
 
-  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.coopService.findOne(+id);

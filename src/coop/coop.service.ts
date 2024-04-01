@@ -2,13 +2,25 @@ import { Injectable } from '@nestjs/common';
 import { CreateCoopDto } from './dto/create-coop.dto';
 import { UpdateCoopDto } from './dto/update-coop.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Coop } from '@prisma/client';
 
 @Injectable()
 export class CoopService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(createCoopDto: CreateCoopDto) {
-    return this.prisma.coop.create({ data: createCoopDto });
+  generateNIK = (total: number, code: string) => {
+    return `${total + 1}CK${code}`;
+  };
+
+  async create(createCoopDto: CreateCoopDto) {
+    const coops = await this.prisma.$queryRaw<Coop[]>`SELECT * FROM "Coop"`;
+
+    const dt = {
+      nik: this.generateNIK(coops.length, createCoopDto.code),
+      name: createCoopDto.name,
+      address: createCoopDto.address,
+    };
+    return this.prisma.coop.create({ data: dt });
   }
 
   findAll() {

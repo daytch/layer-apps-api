@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SignInDto {
-  @ApiProperty({ default: 'SA-123' })
+  @ApiProperty({ default: 'CK-001' })
   username: string;
 
   @ApiProperty({ default: 'superadmin123' })

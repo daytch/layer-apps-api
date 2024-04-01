@@ -311,6 +311,150 @@ async function main() {
       is_active: true,
     },
   });
+
+  // SOP
+  await prisma.sOP.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      roleId: 4,
+      title: 'Anak kandang cek ketebalan pakan',
+      description: 'Anak kandang cek ketebalan pakan',
+      time: '05.00 WIB',
+    },
+  });
+  await prisma.sOP.upsert({
+    where: { id: 2 },
+    update: {},
+    create: {
+      roleId: 4,
+      title: 'Anak kandang berikan pakan (pagi)',
+      description: 'Anak kandang berikan pakan (pagi)',
+      time: '05.30 - 06.30 WIB',
+    },
+  });
+  await prisma.sOP.upsert({
+    where: { id: 3 },
+    update: {},
+    create: {
+      roleId: 4,
+      title: 'Anak kandang cuci pipa minum dan bersih-bersih lantai kandang',
+      description:
+        'Anak kandang cuci pipa minum dan bersih-bersih lantai kandang',
+      time: '06.15 - 07.30 WIBF',
+    },
+  });
+  await prisma.sOP.upsert({
+    where: { id: 4 },
+    update: {},
+    create: {
+      roleId: 4,
+      title: 'Istirahat pagi',
+      description: 'Istirahat pagi',
+      time: '07.30 - 08.30 WIB',
+    },
+  });
+  await prisma.sOP.upsert({
+    where: { id: 5 },
+    update: {},
+    create: {
+      roleId: 4,
+      title: 'Gorek pakan pagi',
+      description: 'Gorek pakan pagi',
+      time: '08.30 - 09.00 WIB',
+    },
+  });
+  await prisma.sOP.upsert({
+    where: { id: 6 },
+    update: {},
+    create: {
+      roleId: 4,
+      title: 'Ambil Telur + Packing',
+      description: 'Ambil Telur + Packing',
+      time: '09.00 - 11.00 WIB',
+    },
+  });
+  await prisma.sOP.upsert({
+    where: { id: 7 },
+    update: {},
+    create: {
+      roleId: 4,
+      title: 'Anak kandang berikan pakan (Siang)',
+      description: 'Anak kandang berikan pakan (Siang)',
+      time: '11.00 - 12.00 WIB',
+    },
+  });
+  await prisma.sOP.upsert({
+    where: { id: 8 },
+    update: {},
+    create: {
+      roleId: 4,
+      title: 'Istirahat siang',
+      description: 'Istirahat siang',
+      time: '12.00 - 13.00 WIB',
+    },
+  });
+  await prisma.sOP.upsert({
+    where: { id: 9 },
+    update: {},
+    create: {
+      roleId: 4,
+      title: 'Gorek pakan siang',
+      description: 'Gorek pakan siang',
+      time: '05.00 WIB',
+    },
+  });
+  await prisma.sOP.upsert({
+    where: { id: 10 },
+    update: {},
+    create: {
+      roleId: 4,
+      title: 'Anak kandang takar pakan untuk besok paginya',
+      description: 'Anak kandang takar pakan untuk besok paginya',
+      time: '13.30 - 14.30 WIB',
+    },
+  });
+  await prisma.sOP.upsert({
+    where: { id: 11 },
+    update: {},
+    create: {
+      roleId: 4,
+      title: 'Anak kandang bersih-bersih lantai kandang dan langit-langit',
+      description:
+        'Anak kandang bersih-bersih lantai kandang dan langit-langit',
+      time: '14.30 - 15.00 WIB',
+    },
+  });
+  await prisma.sOP.upsert({
+    where: { id: 12 },
+    update: {},
+    create: {
+      roleId: 4,
+      title: 'Gorek pakan sore',
+      description: 'Gorek pakan sore',
+      time: '15.00 - 15.30 WIB',
+    },
+  });
+  await prisma.sOP.upsert({
+    where: { id: 13 },
+    update: {},
+    create: {
+      roleId: 4,
+      title: 'Ambil telur sisa pagi yang belum bertelur',
+      description: 'Ambil telur sisa pagi yang belum bertelur',
+      time: '15.30 - 16.30 WIB',
+    },
+  });
+  await prisma.sOP.upsert({
+    where: { id: 14 },
+    update: {},
+    create: {
+      roleId: 4,
+      title: 'Gorek pakan malam',
+      description: 'Gorek pakan malam',
+      time: '17.30 - 18.00 WIB',
+    },
+  });
 }
 
 // execute the main function

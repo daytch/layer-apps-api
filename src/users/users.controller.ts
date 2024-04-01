@@ -15,18 +15,18 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { editFileName, imageFileFilter } from '../utils/file-upload.utils';
 import { Public } from '../auth/constants';
-import { ApiTags, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { FileUploadDto } from './dto/FileUpload.dto';
 import { UsersService } from './users.service';
 import { CreateUsersDto } from './dto/create-users.dto';
 import { UpdateUsersDto } from './dto/update-users.dto';
 
+@ApiBearerAuth()
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Public()
   @Post()
   @UseInterceptors(
     FileInterceptor('image', {
@@ -39,7 +39,7 @@ export class UsersController {
   )
   @ApiConsumes('multipart/form-data')
   @ApiBody({
-    description: 'List of cats',
+    description: 'List of users',
     type: FileUploadDto,
   })
   async uploadedFile(@UploadedFile() file) {
@@ -50,7 +50,6 @@ export class UsersController {
     return response;
   }
 
-  @Public()
   @Post('multiple')
   @UseInterceptors(
     FilesInterceptor('image', 20, {
@@ -89,9 +88,13 @@ export class UsersController {
     return this.usersService.update(+id, updateUsersDto);
   }
 
-  @Public()
   @Delete(':id')
   remove(@Param('id') id: number) {
     return this.usersService.remove(+id);
+  }
+
+  @Get('/profile/:id')
+  findOne(@Param('id') id: string) {
+    return this.usersService.findProfile(+id);
   }
 }
