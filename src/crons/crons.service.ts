@@ -1,8 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, Interval, Timeout } from '@nestjs/schedule';
-import { UsersService } from 'src/users/users.service';
-import { SopService } from 'src/sop/sop.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { UsersService } from '../users/users.service';
+import { SopService } from '../sop/sop.service';
+import { PrismaService } from '../prisma/prisma.service';
+import * as dayjs from 'dayjs';
 
 export type TProgressSOP = {
   userId: number;
@@ -37,17 +38,29 @@ export class CronsService {
     return SOPdetail;
   };
 
-  @Cron('35 * * * * *')
+  @Cron('15 * * * * *')
   async handleCron() {
     try {
       this.logger.debug('Called when the second is 45');
       const users: any = await this.usersService.getAllActiveUsers();
 
       const allSOP = [];
+      const progress = await this.prisma.progressSOP.findMany({
+        where: {
+          createdAt: {
+            // new Date() creates date with current time and day and etc.
+            gte: new Date(),
+          },
+        },
+      });
+
       for (let index = 0; index < users.length; index++) {
         const user = users[index];
         const detail = await this.getSOPByRoleId(user.roleId);
-        if (Object.keys(detail).length > 0)
+        if (
+          Object.keys(detail).length > 0 &&
+          progress.filter((x) => x.userId === user.id).length < 1
+        )
           allSOP.push({
             userId: user?.id,
             detail,

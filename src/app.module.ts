@@ -50,5 +50,6 @@ import { CronsModule } from './crons/crons.module';
       useClass: LoggerInterceptor,
     },
   ],
+  exports: [AppService],
 })
 export class AppModule {}

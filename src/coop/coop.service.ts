@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCoopDto } from './dto/create-coop.dto';
 import { UpdateCoopDto } from './dto/update-coop.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { Coop } from '@prisma/client';
 
 @Injectable()

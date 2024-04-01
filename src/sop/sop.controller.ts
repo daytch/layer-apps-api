@@ -12,7 +12,7 @@ import { CreateSopDto } from './dto/create-sop.dto';
 import { UpdateSopDto } from './dto/update-sop.dto';
 import { CompleteDto } from './dto/complete-sop.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { Public } from 'src/auth/constants';
+import { Public } from '../auth/constants';
 
 @ApiBearerAuth()
 @ApiTags('SOP')
