@@ -1,9 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, Interval, Timeout } from '@nestjs/schedule';
+import { Cron, /*Interval, Timeout,*/ CronExpression } from '@nestjs/schedule';
 import { UsersService } from '../users/users.service';
 import { SopService } from '../sop/sop.service';
 import { PrismaService } from '../prisma/prisma.service';
-import * as dayjs from 'dayjs';
 
 export type TProgressSOP = {
   userId: number;
@@ -19,16 +18,8 @@ export class CronsService {
   ) {}
   private readonly logger = new Logger(CronsService.name);
 
-  set = (obj: any, prop: any, val: boolean) =>
-    Object.defineProperty(obj, prop, {
-      value: val,
-      writable: true,
-      enumerable: true,
-      configurable: true,
-    });
-
   getSOPByRoleId = async (roleId) => {
-    const sops: any = await this.sopService.findAll();
+    const sops: any = await this.sopService.findAll(roleId);
     const SOPdetail = {};
     sops.forEach((element) => {
       if (element.roleId === roleId) {
@@ -38,7 +29,7 @@ export class CronsService {
     return SOPdetail;
   };
 
-  @Cron('15 * * * * *')
+  @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async handleCron() {
     try {
       this.logger.debug('Called when the second is 45');
@@ -76,13 +67,13 @@ export class CronsService {
     }
   }
 
-  @Interval(10000)
-  handleInterval() {
-    this.logger.debug('Called every 10 seconds');
-  }
+  // @Interval(10000)
+  // handleInterval() {
+  //   this.logger.debug('Called every 10 seconds');
+  // }
 
-  @Timeout(5000)
-  handleTimeout() {
-    this.logger.debug('Called once after 5 seconds');
-  }
+  // @Timeout(5000)
+  // handleTimeout() {
+  //   this.logger.debug('Called once after 5 seconds');
+  // }
 }
