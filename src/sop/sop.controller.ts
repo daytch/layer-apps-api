@@ -6,12 +6,13 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { SopService } from './sop.service';
 import { CreateSopDto } from './dto/create-sop.dto';
 import { UpdateSopDto } from './dto/update-sop.dto';
 import { CompleteDto } from './dto/complete-sop.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags, ApiQuery } from '@nestjs/swagger';
 import { Public } from '../auth/constants';
 
 @ApiBearerAuth()
@@ -25,12 +26,13 @@ export class SopController {
     return this.sopService.create(createSopDto);
   }
 
-  @Get()
-  findAll() {
-    return this.sopService.findAll();
+  @Get('/getallsop')
+  @ApiQuery({ name: 'roleId', required: false, type: String })
+  findAll(@Query('roleId') roleId: string = '') {
+    return this.sopService.findAll(roleId);
   }
 
-  @Get(':id')
+  @Get('/getsop/:id')
   findOne(@Param('id') id: string) {
     return this.sopService.findOne(+id);
   }
@@ -58,5 +60,10 @@ export class SopController {
     } catch (error) {
       throw error;
     }
+  }
+
+  @Get('/progress/:roleId/:date')
+  getProgress(@Param('roleId') roleId: string, @Param('date') date: string) {
+    return this.sopService.getProgressAllEmployee(roleId, date);
   }
 }

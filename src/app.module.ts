@@ -13,14 +13,23 @@ import { RoleModule } from './role/role.module';
 import { CoopModule } from './coop/coop.module';
 import { CashflowModule } from './cashflow/cashflow.module';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
-import { ErrorsInterceptor } from './interceptors/errors.interceptor';
+// import { ErrorsInterceptor } from './interceptors/errors.interceptor';
 import { LoggerInterceptor } from './interceptors/logger.interceptor';
 import { SopModule } from './sop/sop.module';
 import { CronsModule } from './crons/crons.module';
+import { ConfigModule } from '@nestjs/config';
+import { DiagnosticModule } from './diagnostic/diagnostic.module';
+import configuration from './configs/configuration';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
+    ConfigModule.forRoot({
+      envFilePath: `./${process.env.NODE_ENV}.env`,
+      isGlobal: true,
+      load: [configuration],
+      expandVariables: true,
+    }),
     CronsModule,
     PrismaModule,
     AuthModule,
@@ -32,6 +41,7 @@ import { CronsModule } from './crons/crons.module';
     CoopModule,
     CashflowModule,
     SopModule,
+    DiagnosticModule,
   ],
   controllers: [AppController],
   providers: [
@@ -41,10 +51,10 @@ import { CronsModule } from './crons/crons.module';
       provide: APP_INTERCEPTOR,
       useClass: TransformInterceptor,
     },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: ErrorsInterceptor,
-    },
+    // {
+    //   provide: APP_INTERCEPTOR,
+    //   useClass: ErrorsInterceptor,
+    // },
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggerInterceptor,

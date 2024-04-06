@@ -3,8 +3,6 @@ import { CreateSopDto } from './dto/create-sop.dto';
 import { UpdateSopDto } from './dto/update-sop.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CompleteDto } from './dto/complete-sop.dto';
-import { ProgressSOP } from '@prisma/client';
-import dayjs from 'dayjs';
 
 @Injectable()
 export class SopService {
@@ -14,8 +12,14 @@ export class SopService {
     return this.prisma.sOP.create({ data: createSopDto });
   }
 
-  async findAll() {
-    const listSOP: any = await this.prisma.sOP.findMany();
+  async findAll(roleId: string) {
+    const listSOP: any = roleId
+      ? await this.prisma.sOP.findMany({
+          where: {
+            roleId: Number(roleId),
+          },
+        })
+      : await this.prisma.sOP.findMany();
     return listSOP;
   }
 
@@ -61,5 +65,15 @@ export class SopService {
       });
     }
     return 'field not found';
+  }
+
+  async getProgressAllEmployee(roleId: string, date: string) {
+    const progress = await this.prisma
+      .$queryRawUnsafe(`SELECT u."id", u."name", ps."detail", ps."createdAt" as date
+    FROM "ProgressSOP" ps 
+    join "Users" u on ps."userId"=u."id" 
+    where ps."roleId"=${roleId} and to_char(ps."createdAt",'YYYY-MM-DD') = '${date}'`);
+
+    return progress;
   }
 }
