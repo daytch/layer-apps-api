@@ -16,7 +16,7 @@ import { diskStorage } from 'multer';
 import { editFileName, imageFileFilter } from '../utils/file-upload.utils';
 import { Public } from '../auth/constants';
 import { ApiTags, ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
-import { FileUploadDto } from './dto/FileUpload.dto';
+import { FileUploadDto } from './dto/fileUpload.dto';
 import { UsersService } from './users.service';
 import { CreateUsersDto } from './dto/create-users.dto';
 import { UpdateUsersDto } from './dto/update-users.dto';
