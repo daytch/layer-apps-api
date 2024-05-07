@@ -32,7 +32,7 @@ export class CronsService {
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async handleCron() {
     try {
-      this.logger.debug('Called when the second is 45');
+      this.logger.debug('job insert data SOP is starting.');
       const users: any = await this.usersService.getAllActiveUsers();
 
       const allSOP = [];

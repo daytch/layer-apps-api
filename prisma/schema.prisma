@@ -61,6 +61,7 @@ model Users {
   updateAt        DateTime          @updatedAt
   ProgressSOP     ProgressSOP[]
   CoopDiagnostics CoopDiagnostics[]
+  FeedsMedicines  FeedsMedicines[]
 }
 
 model Coop {
@@ -113,6 +114,8 @@ model FeedsMedicines {
   coop                  Coop                    @relation(fields: [coopId], references: [id])
   coopId                Int
   name                  String
+  user                  Users                   @relation(fields: [userId], references: [id])
+  userId                Int
   quantity              Int
   uom                   String?
   price                 Int

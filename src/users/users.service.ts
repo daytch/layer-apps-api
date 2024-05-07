@@ -58,6 +58,27 @@ export class UsersService {
     });
   }
 
+  async findOneById(id: number): Promise<IUser | undefined> {
+    const user = await this.prisma.users.findUnique({
+      where: { id },
+    });
+
+    if (!user) {
+      return null;
+    }
+    return <IUser>{
+      id: user.id,
+      nik: user.nik,
+      name: user.name,
+      roleId: user.roleId,
+      coopId: user.coopId,
+      email: user.email,
+      phone: user.phone,
+      avatar: user.avatar,
+      is_active: user.is_active,
+    };
+  }
+
   async findOne(username: string, pass: string): Promise<IUser | undefined> {
     const user = await this.prisma.users.findUnique({
       where: { nik: username },

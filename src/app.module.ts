@@ -19,6 +19,7 @@ import { SopModule } from './sop/sop.module';
 import { CronsModule } from './crons/crons.module';
 import { ConfigModule } from '@nestjs/config';
 import { DiagnosticModule } from './diagnostic/diagnostic.module';
+import { FeedsmedicinesModule } from './feedsmedicines/feedsmedicines.module';
 import configuration from './configs/configuration';
 
 @Module({
@@ -42,6 +43,7 @@ import configuration from './configs/configuration';
     CashflowModule,
     SopModule,
     DiagnosticModule,
+    FeedsmedicinesModule,
   ],
   controllers: [AppController],
   providers: [

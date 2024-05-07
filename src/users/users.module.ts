@@ -6,6 +6,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 // import { AuthGuard } from '../auth/auth.guard';
 import { UsersController } from './users.controller';
 import { MulterModule } from '@nestjs/platform-express';
+import { RoleModule } from 'src/role/role.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { MulterModule } from '@nestjs/platform-express';
     MulterModule.register({
       dest: './public/images',
     }),
+    RoleModule,
   ],
   controllers: [AuthController, UsersController],
   providers: [UsersService, AuthService],
