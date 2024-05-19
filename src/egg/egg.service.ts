@@ -1,0 +1,937 @@
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { CoopService } from 'src/coop/coop.service';
+import { PrismaService } from 'src/prisma/prisma.service';
+import * as dayjs from 'dayjs';
+import * as Excel from 'exceljs';
+import { Prisma } from '@prisma/client';
+
+export interface IEgg {
+  coopId: number;
+  transDate: Date;
+  ageInDay: number;
+  ageInWeek: number;
+  pop: number;
+  m: number;
+  afk: number;
+  sell: number;
+  finalPop: number;
+  feedType: string;
+  feedWeight: number;
+  feedFIT: number;
+  prodPieceN: number;
+  prodPieceP: number;
+  prodPieceBS: number;
+  prodTotalPiece: number;
+  prodWeightN: number;
+  prodWeightP: number;
+  prodWeightBS: number;
+  prodTotalWeight: number;
+  HD: number;
+  FCR: number;
+  EggWeight: number;
+  EggMass: number;
+  OVK: number;
+}
+
+const convertValue = {
+  string: (e) => (e ? e.toString() : null),
+  number: (e) => (e ? parseInt(e) : null),
+  float: (e) => (e ? parseFloat(e).toFixed(2) : null),
+  date: (e) => (e ? e : new Date()),
+};
+
+function getValue(data: any, tipe: string) {
+  try {
+    return typeof data === 'object'
+      ? convertValue[tipe](data?.result)
+      : convertValue[tipe](data);
+  } catch (error) {
+    return convertValue[tipe](data);
+  }
+}
+
+@Injectable()
+export class EggService {
+  constructor(
+    private readonly coopService: CoopService,
+    private readonly prisma: PrismaService,
+  ) {
+    prisma.$on('query' as never, (event: Prisma.QueryEvent) => {
+      console.log('Query: ' + event.query);
+      console.log('Duration: ' + event.duration + 'ms');
+    });
+  }
+
+  async proccess(file: Express.Multer.File) {
+    try {
+      const workBook = new Excel.Workbook();
+      await workBook.xlsx.readFile(file.path);
+
+      const sheet = workBook.getWorksheet('Sheet1');
+      const coopName = sheet.getRow(3).getCell(4).value;
+      const coops = await this.coopService.findOneByName(coopName.toString());
+      if (!coops) {
+        throw new BadRequestException('Something went wrong', {
+          cause: new Error(),
+          description: 'Anda harus memilih kandang yang valid.',
+        });
+      }
+
+      const listEggs = await this.prisma.eggProduction.findMany();
+
+      const insertData = [];
+      for (let index = 10; index < 500; index++) {
+        let data = <IEgg>{};
+        const tgl = sheet.getRow(index).getCell(2).value;
+        if (tgl) {
+          const day = sheet.getRow(index).getCell(3).value;
+          const week = sheet.getRow(index).getCell(4).value;
+          const pop = sheet.getRow(index).getCell(5).value;
+          const m = sheet.getRow(index).getCell(6).value;
+          const afk = sheet.getRow(index).getCell(7).value;
+          const jual = sheet.getRow(index).getCell(8).value;
+          const pop_a = sheet.getRow(index).getCell(9).value;
+          const p_jenis = sheet.getRow(index).getCell(10).value;
+          const p_kg = sheet.getRow(index).getCell(11).value;
+          const p_fit = sheet.getRow(index).getCell(12).value;
+          const prod_b_n = sheet.getRow(index).getCell(13).value;
+          const prod_b_p = sheet.getRow(index).getCell(14).value;
+          const prod_b_b = sheet.getRow(index).getCell(15).value;
+          const prod_b_total = sheet.getRow(index).getCell(16).value;
+          const prod_k_n = sheet.getRow(index).getCell(17).value;
+          const prod_k_p = sheet.getRow(index).getCell(18).value;
+          const prod_k_b = sheet.getRow(index).getCell(19).value;
+          const prod_k_total = sheet.getRow(index).getCell(20).value;
+          const hd = sheet.getRow(index).getCell(21).value;
+          const fcr = sheet.getRow(index).getCell(22).value;
+          const w = sheet.getRow(index).getCell(23).value;
+          const mass = sheet.getRow(index).getCell(24).value;
+          const ovk = sheet.getRow(index).getCell(25).value;
+
+          data = {
+            coopId: (await coops).id,
+            transDate: getValue(tgl, 'date'),
+            ageInDay: getValue(day, 'number'),
+            ageInWeek: getValue(week, 'number'),
+            pop: getValue(pop, 'number'),
+            m: getValue(m, 'number'),
+            afk: getValue(afk, 'number'),
+            sell: getValue(jual, 'number'),
+            finalPop: getValue(pop_a, 'number'),
+            feedType: getValue(p_jenis, 'string'),
+            feedWeight: getValue(p_kg, 'number'),
+            feedFIT: getValue(p_fit, 'float'),
+            prodPieceN: getValue(prod_b_n, 'number'),
+            prodPieceP: getValue(prod_b_p, 'number'),
+            prodPieceBS: getValue(prod_b_b, 'number'),
+            prodTotalPiece: getValue(prod_b_total, 'number'),
+            prodWeightN: getValue(prod_k_n, 'float'),
+            prodWeightP: getValue(prod_k_p, 'float'),
+            prodWeightBS: getValue(prod_k_b, 'float'),
+            prodTotalWeight: getValue(prod_k_total, 'float'),
+            HD: getValue(hd, 'float'),
+            FCR: getValue(fcr, 'float'),
+            EggWeight: getValue(w, 'float'),
+            EggMass: getValue(mass, 'float'),
+            OVK: getValue(ovk, 'float'),
+          };
+          console.log('data: ', data);
+          const activeData = listEggs.filter((egg) => {
+            return (
+              egg.coopId === data.coopId &&
+              dayjs(egg.transDate).isSame(dayjs(data.transDate)) &&
+              egg.ageInDay === data.ageInDay
+            );
+          });
+
+          if (activeData.length > 0) {
+            await this.prisma.eggProduction.update({
+              where: { id: activeData[0].id },
+              data,
+            });
+          } else {
+            insertData.push(data);
+          }
+        } else {
+          break;
+        }
+      }
+      await this.prisma.eggProduction.createMany({ data: insertData });
+      return 'Import data produksi telur berhasil.';
+    } catch (error) {
+      console.log('error: ', error);
+      throw error;
+    }
+  }
+
+  async download(coopId: number, date: string): Promise<any> {
+    try {
+      const coop = await this.coopService.findOne(coopId);
+      const eggs = await this.prisma.eggProduction.findMany({
+        where: {
+          coopId,
+          AND: [
+            {
+              transDate: {
+                lte: dayjs(date).endOf('month').toISOString(),
+              },
+            },
+            {
+              transDate: {
+                gte: dayjs(date).startOf('month').toISOString(),
+              },
+            },
+          ],
+        },
+        orderBy: { id: 'asc' },
+      });
+
+      const wb = new Excel.Workbook();
+      const ws = wb.addWorksheet('Sheet1');
+
+      ws.mergeCells('B2:Y2');
+      ws.getCell('B2').value = 'CATATAN HARIAN TELUR';
+      ws.getCell('B2').alignment = { horizontal: 'center' };
+      ws.getCell('B2').font = { bold: true };
+
+      ws.getCell('B3').value = 'FARM';
+      ws.getCell('C3').value = ':';
+      ws.mergeCells('D3:F3');
+      ws.getCell('D3').value = 'COKRO FARM';
+      ws.getCell('B3').font = { bold: true };
+      ws.getCell('B3').border = { bottom: { style: 'thin' } };
+      ws.getCell('C3').font = { bold: true };
+      ws.getCell('C3').border = { bottom: { style: 'thin' } };
+      ws.getCell('D3').font = { bold: true };
+      ws.getCell('D3').border = { bottom: { style: 'thin' } };
+      ws.getCell('D3').fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFFF00' },
+      };
+
+      ws.getCell('B4').value = 'KANDANG';
+      ws.getCell('C4').value = ':';
+      ws.mergeCells('D4:F4');
+      ws.getCell('D4').value = coop.name;
+      ws.getCell('B4').font = { bold: true };
+      ws.getCell('B4').border = { bottom: { style: 'thin' } };
+      ws.getCell('C4').font = { bold: true };
+      ws.getCell('C4').border = { bottom: { style: 'thin' } };
+      ws.getCell('D4').font = { bold: true };
+      ws.getCell('D4').border = { bottom: { style: 'thin' } };
+      ws.getCell('E4').font = { bold: true };
+      ws.getCell('E4').border = { bottom: { style: 'thin' } };
+      ws.getCell('F4').font = { bold: true };
+      ws.getCell('F4').border = { bottom: { style: 'thin' } };
+      ws.getCell('D4').fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFFF00' },
+      };
+
+      ws.getCell('B5').value = 'POPULASI';
+      ws.getCell('C5').value = ':';
+      ws.mergeCells('D5:F5');
+      ws.getCell('B5').font = { bold: true };
+      ws.getCell('B5').border = { bottom: { style: 'thin' } };
+      ws.getCell('C5').font = { bold: true };
+      ws.getCell('C5').border = { bottom: { style: 'thin' } };
+      ws.getCell('D5').font = { bold: true };
+      ws.getCell('D5').border = { bottom: { style: 'thin' } };
+      ws.getCell('E5').font = { bold: true };
+      ws.getCell('E5').border = { bottom: { style: 'thin' } };
+      ws.getCell('F5').font = { bold: true };
+      ws.getCell('F5').border = { bottom: { style: 'thin' } };
+      ws.getCell('D5').fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFFF00' },
+      };
+
+      ws.mergeCells('O3:P3');
+      ws.getCell('O3').value = 'Tanggal Chik In';
+      ws.getCell('Q3').value = ':';
+      ws.getCell('O3').font = { bold: true };
+      ws.getCell('O3').border = { bottom: { style: 'thin' } };
+      ws.getCell('P3').font = { bold: true };
+      ws.getCell('P3').border = { bottom: { style: 'thin' } };
+      ws.getCell('Q3').font = { bold: true };
+      ws.getCell('Q3').border = { bottom: { style: 'thin' } };
+      ws.getCell('R3').font = { bold: true };
+      ws.getCell('R3').border = { bottom: { style: 'thin' } };
+      ws.getCell('S3').font = { bold: true };
+      ws.getCell('S3').border = { bottom: { style: 'thin' } };
+
+      ws.mergeCells('R3:S3');
+      ws.getCell('R3').value = dayjs(date).format('DD-MMM');
+
+      ws.getCell('O4').value = 'STRAIN';
+      ws.getCell('Q4').value = ':';
+      ws.getCell('O4').font = { bold: true };
+      ws.getCell('O4').border = { bottom: { style: 'thin' } };
+      ws.getCell('P4').font = { bold: true };
+      ws.getCell('P4').border = { bottom: { style: 'thin' } };
+      ws.getCell('Q4').font = { bold: true };
+      ws.getCell('Q4').border = { bottom: { style: 'thin' } };
+      ws.getCell('R4').font = { bold: true };
+      ws.getCell('R4').border = { bottom: { style: 'thin' } };
+      ws.getCell('S4').font = { bold: true };
+      ws.getCell('S4').border = { bottom: { style: 'thin' } };
+      ws.getCell('R3:R4').fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFFF00' },
+      };
+
+      ws.getColumn('T').width = 7.5;
+      ws.getColumn('U').width = 8.5;
+      ws.getColumn('V').width = 8.5;
+      ws.getColumn('W').width = 8.5;
+      ws.getColumn('X').width = 8.5;
+      ws.getColumn('Y').width = 8.5;
+
+      /*Column headers*/
+      ws.getRow(7).values = [
+        '',
+        'Tanggal',
+        'Umur (hr)',
+        'Umur Mgg',
+        'Pop',
+        'M',
+        'Afk',
+        'Jual',
+        'Pop Akhir',
+        'Jenis', //pakan
+        'KG',
+        'FIT (gr/Ek)',
+        'N', // BUTIR
+        'P',
+        'BS',
+        'Total Btr',
+        'N', // Kg
+        'P',
+        'BS',
+        'Total Kg',
+        'HD',
+        'FCR',
+        'Egg Weight (Gr/Btr)',
+        'Egg Mass (Kg Telur/1000Ek)',
+        'OVK',
+      ];
+      ws.columns = [
+        {},
+        {
+          key: 'transDate',
+          alignment: { horizontal: 'center' },
+          width: 9.67,
+          style: { numFmt: 'dd-mmm' },
+        },
+        { key: 'ageInDay', alignment: { horizontal: 'center' }, width: 5.33 },
+        { key: 'ageInWeek', alignment: { horizontal: 'center' }, width: 5.33 },
+        { key: 'pop', alignment: { horizontal: 'center' }, width: 7.83 },
+        { key: 'm', alignment: { horizontal: 'center' }, width: 5.8 },
+        { key: 'afk', alignment: { horizontal: 'center' }, width: 5.8 },
+        { key: 'sell', alignment: { horizontal: 'center' }, width: 5.8 },
+        { key: 'finalPop', alignment: { horizontal: 'center' }, width: 6.5 },
+        { key: 'feedType', alignment: { horizontal: 'center' }, width: 8.67 },
+        { key: 'feedWeight', alignment: { horizontal: 'center' }, width: 7.17 },
+        { key: 'feedFIT', alignment: { horizontal: 'center' }, width: 6.67 },
+        { key: 'prodPieceN', alignment: { horizontal: 'center' }, width: 5.8 },
+        { key: 'prodPieceP', alignment: { horizontal: 'center' }, width: 5.8 },
+        {
+          key: 'prodPieceBS',
+          alignment: { horizontal: 'center' },
+          width: 5.8,
+        },
+        {
+          key: 'prodTotalPiece',
+          alignment: { horizontal: 'center' },
+          width: 7.5,
+        },
+        {
+          key: 'prodWeightN',
+          alignment: { horizontal: 'center' },
+          width: 5.8,
+        },
+        {
+          key: 'prodWeightP',
+          alignment: { horizontal: 'center' },
+          width: 5.8,
+        },
+        {
+          key: 'prodWeightBS',
+          alignment: { horizontal: 'center' },
+          width: 5.8,
+        },
+        {
+          key: 'prodTotalWeight',
+          alignment: { horizontal: 'center' },
+          width: 7.5,
+        },
+        { key: 'HD', alignment: { horizontal: 'center' }, width: 8.5 },
+        { key: 'FCR', alignment: { horizontal: 'center' }, width: 8.5 },
+        {
+          key: 'EggWeight',
+          alignment: { horizontal: 'center' },
+          width: 8.5,
+        },
+        {
+          key: 'EggMass',
+          alignment: { horizontal: 'center' },
+          width: 8.5,
+        },
+        { key: 'OVK', alignment: { horizontal: 'center' }, width: 8.5 },
+      ];
+      ws.getCell('B7:B9').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FBDECD' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.mergeCells('B7:B9');
+
+      ws.getCell('C7:C9').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FBDECD' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.mergeCells('C7:C9');
+
+      ws.getCell('D7:D9').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FBDECD' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.mergeCells('D7:D9');
+
+      ws.getCell('E7:E9').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FBDECD' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.mergeCells('E7:E9');
+
+      ws.getCell('F7:F9').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FBDECD' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.mergeCells('F7:F9');
+
+      ws.getCell('G7:G9').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FBDECD' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.mergeCells('G7:G9');
+
+      ws.getCell('H7:H9').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FBDECD' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.mergeCells('H7:H9');
+
+      ws.getCell('I7:I9').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FBDECD' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.mergeCells('I7:I9');
+
+      ws.getCell('J8').value = 'Jenis';
+      ws.getCell('J8').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFF1C1' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.mergeCells('J8:J9');
+
+      ws.getCell('K8').value = 'KG';
+      ws.getCell('K8').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFF1C1' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.mergeCells('K8:K9');
+
+      ws.getCell('L8').value = 'FIT (gr/Ek)';
+      ws.getCell('L8').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFF1C1' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.mergeCells('L8:L9');
+
+      ws.getCell('M9').value = 'N';
+      ws.getCell('M9').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'D6E5F5' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.getCell('N9').value = 'P';
+      ws.getCell('N9').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'D6E5F5' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.getCell('O9').value = 'BS';
+      ws.getCell('O9').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'D6E5F5' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.getCell('P9').value = 'Total Btr';
+      ws.getCell('P9').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'D6E5F5' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+
+      ws.getCell('Q9').value = 'N';
+      ws.getCell('Q9').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'D6E5F5' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.getCell('R9').value = 'P';
+      ws.getCell('R9').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'D6E5F5' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.getCell('S9').value = 'BS';
+      ws.getCell('S9').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'D6E5F5' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.getCell('T9').value = 'Total Kg';
+      ws.getCell('T9').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'D6E5F5' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+
+      ws.getCell('U7').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'E9E9E9' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.mergeCells('U7:U9');
+
+      ws.getCell('V7').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'E9E9E9' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.mergeCells('V7:V9');
+
+      ws.getCell('W7').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'E9E9E9' },
+        },
+        font: { bold: true, size: 9 },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.mergeCells('W7:W9');
+
+      ws.getCell('X7').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'E9E9E9' },
+        },
+        font: { bold: true, size: 8 },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.mergeCells('X7:X9');
+
+      ws.getCell('Y7').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'E9E9E9' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.mergeCells('Y7:Y9');
+
+      // Custom Header
+      ws.getCell('J7').value = 'Pakan';
+      ws.getCell('J7').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFF1C1' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.mergeCells('J7:L7');
+
+      ws.getCell('M7').value = 'Prod';
+      ws.getCell('M7').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'D6E5F5' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.mergeCells('M7:T7');
+
+      ws.getCell('M8').value = 'Btr';
+      ws.getCell('M8').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'D6E5F5' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.mergeCells('M8:P8');
+
+      ws.getCell('Q8').value = 'Kg';
+      ws.getCell('Q8').style = {
+        fill: {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'D6E5F5' },
+        },
+        font: { bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+        border: {
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' },
+          top: { style: 'thin' },
+        },
+      };
+      ws.mergeCells('Q8:T8');
+
+      eggs.forEach((item) => {
+        ws.addRow({
+          coopId: item.coopId,
+          transDate: item.transDate,
+          ageInDay: item.ageInDay,
+          ageInWeek: item.ageInWeek,
+          pop: item.pop ?? '',
+          m: item.m ?? '',
+          afk: item.afk ?? '',
+          sell: item.sell ?? '',
+          finalPop: item.finalPop ?? '',
+          feedType: item.feedType ?? '',
+          feedWeight: item.feedWeight ?? '',
+          feedFIT: item.feedFIT ? Number(item.feedFIT) : '',
+          prodPieceN: item.prodPieceN ?? '',
+          prodPieceP: item.prodPieceP ?? '',
+          prodPieceBS: item.prodPieceBS ?? '',
+          prodTotalPiece: item.prodTotalPiece ?? '',
+          prodWeightN: item.prodWeightN ? Number(item.prodWeightN) : '',
+          prodWeightP: item.prodWeightP ? Number(item.prodWeightP) : '',
+          prodWeightBS: item.prodWeightBS ? Number(item.prodWeightBS) : '',
+          prodTotalWeight: item.prodTotalWeight
+            ? Number(item.prodTotalWeight)
+            : '',
+          HD: item.HD ? Number(item.HD) : '',
+          FCR: item.FCR ? Number(item.FCR) : '',
+          EggWeight: item.EggWeight ? Number(item.EggWeight) : '',
+          EggMass: item.EggMass ? Number(item.EggMass) : '',
+          OVK: item.OVK ? Number(item.OVK) : '',
+        });
+      });
+
+      for (let index = 10; index < eggs.length + 10; index++) {
+        for (let idxCol = 2; idxCol <= 25; idxCol++) {
+          if (idxCol === 2) {
+            ws.getRow(index).getCell(idxCol).style = {
+              ...ws.getRow(index).getCell(idxCol).style,
+              alignment: {
+                horizontal: 'center',
+                vertical: 'middle',
+                wrapText: true,
+              },
+              border: {
+                bottom: { style: 'thin' },
+                left: { style: 'thin' },
+                right: { style: 'thin' },
+                top: { style: 'thin' },
+              },
+            };
+          } else {
+            ws.getRow(index).getCell(idxCol).style = {
+              alignment: {
+                horizontal: 'center',
+                vertical: 'middle',
+                wrapText: true,
+              },
+              border: {
+                bottom: { style: 'thin' },
+                left: { style: 'thin' },
+                right: { style: 'thin' },
+                top: { style: 'thin' },
+              },
+            };
+          }
+        }
+      }
+
+      const buffer = await wb.xlsx.writeBuffer();
+      return buffer;
+    } catch (error) {
+      throw error;
+    }
+  }
+}

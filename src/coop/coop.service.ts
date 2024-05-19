@@ -31,6 +31,10 @@ export class CoopService {
     return this.prisma.coop.findUnique({ where: { id } });
   }
 
+  async findOneByName(name: string) {
+    return await this.prisma.coop.findFirst({ where: { name } });
+  }
+
   update(id: number, updateCoopDto: UpdateCoopDto) {
     return this.prisma.coop.update({
       where: { id },

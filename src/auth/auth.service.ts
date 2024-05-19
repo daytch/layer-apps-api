@@ -2,7 +2,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { RoleService } from '../role/role.service';
+import { RoleService } from 'src/role/role.service';
 
 export interface IPayload {
   uid: number;

@@ -140,31 +140,31 @@ model HistoryFeedsMedicines {
 model EggProduction {
   id              Int      @id @default(autoincrement())
   coop            Coop     @relation(fields: [coopId], references: [id])
-  coopId          Int
+  coopId          Int      
   transDate       DateTime
-  ageInDay        Int
-  ageInWeek       Int
-  pop             Int
-  m               Int
-  afk             Int
-  sell            Int
-  finalPop        Int
-  feedType        String
-  feedWeight      Int
-  feedFIT         Decimal
-  prodPieceN      Int
-  prodPieceP      Int
-  prodPieceBS     Int
-  prodTotalPiece  Int
-  prodWeightN     Decimal
-  prodWeightP     Decimal
-  prodWeightBS    Decimal
-  prodTotalWeight Decimal
-  HD              Decimal
-  FCR             Decimal
-  EggWeight       Decimal
-  EggMass         Decimal
-  OVK             Decimal
+  ageInDay        Int?
+  ageInWeek       Int?
+  pop             Int?
+  m               Int?
+  afk             Int?
+  sell            Int?
+  finalPop        Int?
+  feedType        String?
+  feedWeight      Int?
+  feedFIT         Decimal?
+  prodPieceN      Int?
+  prodPieceP      Int?
+  prodPieceBS     Int?
+  prodTotalPiece  Int?
+  prodWeightN     Decimal?
+  prodWeightP     Decimal?
+  prodWeightBS    Decimal?
+  prodTotalWeight Decimal?
+  HD              Decimal?
+  FCR             Decimal?
+  EggWeight       Decimal?
+  EggMass         Decimal?
+  OVK             Decimal?
   createdAt       DateTime @default(now())
   updateAt        DateTime @updatedAt
 }
