@@ -3,6 +3,21 @@ import { existsSync, mkdirSync } from 'fs';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 
+export const greenCol = [
+  'F',
+  'G',
+  'H',
+  'J',
+  'L',
+  'M',
+  'N',
+  'O',
+  'Q',
+  'R',
+  'S',
+  'Y',
+];
+
 export const multerConfig = {
   dest: process.env.UPLOAD_LOCATION || './public/docs',
 };

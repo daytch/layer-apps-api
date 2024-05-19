@@ -4,6 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import * as dayjs from 'dayjs';
 import * as Excel from 'exceljs';
 import { Prisma } from '@prisma/client';
+import { greenCol } from 'src/egg/upload';
 
 export interface IEgg {
   coopId: number;
@@ -42,12 +43,29 @@ const convertValue = {
 
 function getValue(data: any, tipe: string) {
   try {
-    return typeof data === 'object'
-      ? convertValue[tipe](data?.result)
-      : convertValue[tipe](data);
+    return data instanceof Date
+      ? data
+      : typeof data === 'object'
+        ? convertValue[tipe](data?.result)
+        : convertValue[tipe](data);
   } catch (error) {
     return convertValue[tipe](data);
   }
+}
+function daysInMonth(month, year) {
+  return new Date(year, month, 0).getDate();
+}
+
+function getFirstLastDate(tgl: any) {
+  const date = new Date(tgl);
+  const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+
+  const lastDay = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    daysInMonth(date.getMonth() + 1, date.getFullYear()),
+  );
+  return { firstDay, lastDay };
 }
 
 @Injectable()
@@ -166,22 +184,12 @@ export class EggService {
 
   async download(coopId: number, date: string): Promise<any> {
     try {
+      const { firstDay, lastDay } = getFirstLastDate(date);
       const coop = await this.coopService.findOne(coopId);
       const eggs = await this.prisma.eggProduction.findMany({
         where: {
           coopId,
-          AND: [
-            {
-              transDate: {
-                lte: dayjs(date).endOf('month').toISOString(),
-              },
-            },
-            {
-              transDate: {
-                gte: dayjs(date).startOf('month').toISOString(),
-              },
-            },
-          ],
+          transDate: { lte: lastDay, gte: firstDay },
         },
         orderBy: { id: 'asc' },
       });
@@ -249,47 +257,41 @@ export class EggService {
         fgColor: { argb: 'FFFF00' },
       };
 
-      ws.mergeCells('O3:P3');
-      ws.getCell('O3').value = 'Tanggal Chik In';
-      ws.getCell('Q3').value = ':';
-      ws.getCell('O3').font = { bold: true };
-      ws.getCell('O3').border = { bottom: { style: 'thin' } };
-      ws.getCell('P3').font = { bold: true };
-      ws.getCell('P3').border = { bottom: { style: 'thin' } };
-      ws.getCell('Q3').font = { bold: true };
-      ws.getCell('Q3').border = { bottom: { style: 'thin' } };
-      ws.getCell('R3').font = { bold: true };
-      ws.getCell('R3').border = { bottom: { style: 'thin' } };
-      ws.getCell('S3').font = { bold: true };
-      ws.getCell('S3').border = { bottom: { style: 'thin' } };
+      ws.mergeCells('U3:V3');
+      ws.getCell('U3').value = 'Tanggal Chik In';
+      ws.getCell('W3').value = ':';
+      ws.getCell('U3').font = { bold: true };
+      ws.getCell('U3').border = { bottom: { style: 'thin' } };
+      ws.getCell('V3').font = { bold: true };
+      ws.getCell('V3').border = { bottom: { style: 'thin' } };
+      ws.getCell('W3').font = { bold: true };
+      ws.getCell('W3').border = { bottom: { style: 'thin' } };
+      ws.getCell('X3').font = { bold: true };
+      ws.getCell('X3').border = { bottom: { style: 'thin' } };
+      ws.getCell('Y3').font = { bold: true };
+      ws.getCell('Y3').border = { bottom: { style: 'thin' } };
 
-      ws.mergeCells('R3:S3');
-      ws.getCell('R3').value = dayjs(date).format('DD-MMM');
-
-      ws.getCell('O4').value = 'STRAIN';
-      ws.getCell('Q4').value = ':';
-      ws.getCell('O4').font = { bold: true };
-      ws.getCell('O4').border = { bottom: { style: 'thin' } };
-      ws.getCell('P4').font = { bold: true };
-      ws.getCell('P4').border = { bottom: { style: 'thin' } };
-      ws.getCell('Q4').font = { bold: true };
-      ws.getCell('Q4').border = { bottom: { style: 'thin' } };
-      ws.getCell('R4').font = { bold: true };
-      ws.getCell('R4').border = { bottom: { style: 'thin' } };
-      ws.getCell('S4').font = { bold: true };
-      ws.getCell('S4').border = { bottom: { style: 'thin' } };
-      ws.getCell('R3:R4').fill = {
+      ws.mergeCells('X3:Y3');
+      ws.getCell('X3').value = new Date(date);
+      ws.getCell('X3').numFmt = 'dd-mmm';
+      ws.getCell('X3').fill = {
         type: 'pattern',
         pattern: 'solid',
         fgColor: { argb: 'FFFF00' },
       };
 
-      ws.getColumn('T').width = 7.5;
-      ws.getColumn('U').width = 8.5;
-      ws.getColumn('V').width = 8.5;
-      ws.getColumn('W').width = 8.5;
-      ws.getColumn('X').width = 8.5;
-      ws.getColumn('Y').width = 8.5;
+      ws.getCell('U4').value = 'STRAIN';
+      ws.getCell('W4').value = ':';
+      ws.getCell('U4').font = { bold: true };
+      ws.getCell('U4').border = { bottom: { style: 'thin' } };
+      ws.getCell('V4').font = { bold: true };
+      ws.getCell('V4').border = { bottom: { style: 'thin' } };
+      ws.getCell('W4').font = { bold: true };
+      ws.getCell('W4').border = { bottom: { style: 'thin' } };
+      ws.getCell('X4').font = { bold: true };
+      ws.getCell('X4').border = { bottom: { style: 'thin' } };
+      ws.getCell('Y4').font = { bold: true };
+      ws.getCell('Y4').border = { bottom: { style: 'thin' } };
 
       /*Column headers*/
       ws.getRow(7).values = [
@@ -893,9 +895,27 @@ export class EggService {
         });
       });
 
+      let lastMergedCell = 10;
       for (let index = 10; index < eggs.length + 10; index++) {
+        let blueCell = 0;
         for (let idxCol = 2; idxCol <= 25; idxCol++) {
-          if (idxCol === 2) {
+          const { address } = ws.getRow(index).getCell(idxCol);
+          if (greenCol.indexOf(address[0]) > -1) {
+            ws.getRow(index).getCell(idxCol).style = {
+              ...ws.getRow(index).getCell(idxCol).style,
+              fill: {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'BBDAA5' },
+              },
+              border: {
+                bottom: { style: 'thin' },
+                left: { style: 'thin' },
+                right: { style: 'thin' },
+                top: { style: 'thin' },
+              },
+            };
+          } else if (idxCol === 2) {
             ws.getRow(index).getCell(idxCol).style = {
               ...ws.getRow(index).getCell(idxCol).style,
               alignment: {
@@ -925,6 +945,25 @@ export class EggService {
               },
             };
           }
+          if (
+            Number(ws.getRow(index).getCell(3).value) % 7 === 0 &&
+            index >= lastMergedCell
+          ) {
+            blueCell = index;
+            ws.mergeCells(`D${lastMergedCell}:D${index}`);
+            lastMergedCell = index + 1;
+          }
+          if (blueCell === index) {
+            ws.getRow(index).getCell(idxCol).style = {
+              ...ws.getRow(index).getCell(idxCol).style,
+              fill: {
+                pattern: 'solid',
+                type: 'pattern',
+                fgColor: { argb: '159FE9' },
+              },
+            };
+          }
+          if (idxCol > 20) ws.getColumn(idxCol).width = 8.5;
         }
       }
 

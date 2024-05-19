@@ -6,7 +6,6 @@ import {
   Get,
   StreamableFile,
   Param,
-  Res,
   Header,
 } from '@nestjs/common';
 import { EggService } from './egg.service';
@@ -14,6 +13,7 @@ import { ApiTags, ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileUploadDto } from './dto/fileUpload.dto';
 import { multerOptions } from 'src/egg/upload';
+import { Public } from 'src/auth/constants';
 
 @ApiBearerAuth()
 @ApiTags('Egg')
@@ -21,6 +21,7 @@ import { multerOptions } from 'src/egg/upload';
 export class EggController {
   constructor(private readonly eggService: EggService) {}
 
+  @Public()
   @Post()
   @UseInterceptors(FileInterceptor('file', multerOptions))
   @ApiConsumes('multipart/form-data')
@@ -32,6 +33,7 @@ export class EggController {
     return this.eggService.proccess(file);
   }
 
+  @Public()
   @Get('download/:coopId/:date')
   @Header('content-type', 'application/vnd.ms-excel')
   @Header('content-disposition', 'attachment; filename="report.xlsx"')
