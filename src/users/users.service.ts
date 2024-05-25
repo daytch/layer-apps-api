@@ -24,6 +24,39 @@ export interface IUser {
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async getAllUsers() {
+    const users = await this.prisma.users.findMany({
+      select: {
+        email: true,
+        id: true,
+        avatar: true,
+        nik: true,
+        name: true,
+        phone: true,
+        is_active: true,
+        role: {
+          select: { name: true },
+        },
+        coop: {
+          select: { name: true },
+        },
+      },
+    });
+    return users.map((item) => {
+      return {
+        email: item.email,
+        id: item.id,
+        avatar: item.avatar,
+        nik: item.nik,
+        name: item.name,
+        phone: item.phone,
+        is_active: item.is_active,
+        role_name: item.role.name,
+        coop_name: item.coop.name,
+      };
+    });
+  }
+
   async findProfile(id: number): Promise<IUser | undefined> {
     return await this.prisma.users.findUnique({
       where: { id },

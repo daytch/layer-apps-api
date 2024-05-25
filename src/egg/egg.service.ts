@@ -5,6 +5,19 @@ import * as dayjs from 'dayjs';
 import * as Excel from 'exceljs';
 import { Prisma } from '@prisma/client';
 import { greenCol } from 'src/egg/upload';
+import { alfaNumeric } from 'src/utils/randomizer.utils';
+import { ResponseUpload } from './dto/ResponseUpload.dto';
+
+export enum EResponseUpload {
+  cancel,
+  skip,
+  replace,
+}
+
+export interface IResponseUpload {
+  code: string;
+  status: EResponseUpload;
+}
 
 export interface IEgg {
   coopId: number;
@@ -98,6 +111,10 @@ export class EggService {
       const listEggs = await this.prisma.eggProduction.findMany();
 
       const insertData = [];
+      const duplicateData = [];
+      const duplicateDate = [];
+      let isAnyDuplicate = false;
+      let code = '';
       for (let index = 10; index < 500; index++) {
         let data = <IEgg>{};
         const tgl = sheet.getRow(index).getCell(2).value;
@@ -153,7 +170,7 @@ export class EggService {
             EggMass: getValue(mass, 'float'),
             OVK: getValue(ovk, 'float'),
           };
-          console.log('data: ', data);
+
           const activeData = listEggs.filter((egg) => {
             return (
               egg.coopId === data.coopId &&
@@ -162,10 +179,14 @@ export class EggService {
             );
           });
 
-          if (activeData.length > 0) {
-            await this.prisma.eggProduction.update({
-              where: { id: activeData[0].id },
-              data,
+          if (activeData.length > 0 || isAnyDuplicate) {
+            code = code || alfaNumeric(8);
+            isAnyDuplicate = true;
+            duplicateDate.push(dayjs(data.transDate).format('DD MMM YYYY'));
+            duplicateData.push({
+              ...data,
+              isDuplicate: activeData.length > 0,
+              code,
             });
           } else {
             insertData.push(data);
@@ -174,8 +195,23 @@ export class EggService {
           break;
         }
       }
-      await this.prisma.eggProduction.createMany({ data: insertData });
-      return 'Import data produksi telur berhasil.';
+      if (insertData.length > 0) {
+        await this.prisma.eggProduction.createMany({ data: insertData });
+        return {
+          message: 'Import data produksi telur berhasil.',
+          isAnyDuplicate,
+          duplicateDate,
+          code,
+        };
+      } else {
+        await this.prisma.eggProductionTemp.createMany({ data: duplicateData });
+        return {
+          message: 'Ada duplikasi data',
+          isAnyDuplicate,
+          duplicateDate,
+          code,
+        };
+      }
     } catch (error) {
       console.log('error: ', error);
       throw error;
@@ -972,5 +1008,58 @@ export class EggService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async confirm(respUpload: ResponseUpload) {
+    try {
+      switch (respUpload.status) {
+        case EResponseUpload.cancel:
+          const result = this.prisma.eggProductionTemp.deleteMany({
+            where: { code: respUpload.code },
+          });
+          break;
+        case EResponseUpload.replace:
+          const dupData = await this.prisma.eggProductionTemp.findMany({
+            where: { code: respUpload.code, isDuplicate: true },
+          });
+
+          // for (let i = 0; i < dupData.length; i++) {
+          //   await this.prisma.eggProduction.update({
+          //     where: {
+          //       transDate: dupData[i].transDate,
+          //       coopId: dupData[i].coopId,
+          //     },
+          //     data: dupData[i],
+          //   });
+          // }
+
+          // const result = this.prisma.eggProductionTemp.deleteMany({
+          //   where: { code: respUpload.code },
+          // });
+          break;
+        case EResponseUpload.skip:
+          const newData = await this.prisma.eggProductionTemp.findMany({
+            where: { code: respUpload.code, isDuplicate: false },
+          });
+
+          // for (let i = 0; i < newData.length; i++) {
+          //   await this.prisma.eggProduction.update({
+          //     where: {
+          //       transDate: newData[i].transDate,
+          //       coopId: newData[i].coopId,
+          //     },
+          //     data: newData[i],
+          //   });
+          // }
+
+          // const result = this.prisma.eggProductionTemp.deleteMany({
+          //   where: { code: respUpload.code },
+          // });
+          break;
+
+        default:
+          break;
+      }
+    } catch (error) {}
   }
 }

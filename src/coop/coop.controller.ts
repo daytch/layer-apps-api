@@ -3,7 +3,7 @@ import {
   Get,
   Post,
   Body,
-  Patch,
+  Put,
   Param,
   Delete,
 } from '@nestjs/common';
@@ -33,7 +33,7 @@ export class CoopController {
     return this.coopService.findOne(+id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(@Param('id') id: string, @Body() updateCoopDto: UpdateCoopDto) {
     return this.coopService.update(+id, updateCoopDto);
   }

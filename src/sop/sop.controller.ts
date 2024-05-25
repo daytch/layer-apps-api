@@ -3,7 +3,7 @@ import {
   Get,
   Post,
   Body,
-  Patch,
+  Put,
   Param,
   Delete,
   Query,
@@ -42,7 +42,7 @@ export class SopController {
     return this.sopService.findByRoleId(+roleId);
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(@Param('id') id: string, @Body() updateSopDto: UpdateSopDto) {
     return this.sopService.update(+id, updateSopDto);
   }

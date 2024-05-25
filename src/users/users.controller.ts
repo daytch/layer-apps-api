@@ -8,7 +8,7 @@ import {
   Res,
   Param,
   Body,
-  Patch,
+  Put,
   Delete,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
@@ -83,7 +83,7 @@ export class UsersController {
     return this.usersService.create(createUsersDto);
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(@Param('id') id: number, @Body() updateUsersDto: UpdateUsersDto) {
     return this.usersService.update(+id, updateUsersDto);
   }
@@ -96,5 +96,11 @@ export class UsersController {
   @Get('/profile/:id')
   findOne(@Param('id') id: string) {
     return this.usersService.findProfile(+id);
+  }
+
+  @Public()
+  @Get()
+  findAll() {
+    return this.usersService.getAllUsers();
   }
 }

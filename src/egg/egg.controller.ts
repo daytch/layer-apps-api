@@ -14,6 +14,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { FileUploadDto } from './dto/fileUpload.dto';
 import { multerOptions } from 'src/egg/upload';
 import { Public } from 'src/auth/constants';
+import { ResponseUpload } from './dto/ResponseUpload.dto';
 
 @ApiBearerAuth()
 @ApiTags('Egg')
@@ -44,4 +45,9 @@ export class EggController {
     const file = await this.eggService.download(Number(coopId), date);
     return new StreamableFile(file);
   }
+
+  // @Post('duplicate-confirm')
+  // async duplicateConfirmation(@Body() respUpload: ResponseUpload) {
+  //   return this.eggService.confirm(respUpload);
+  // }
 }

@@ -3,7 +3,7 @@ import {
   Get,
   Post,
   Body,
-  Patch,
+  Put,
   Param,
   Delete,
   Query,
@@ -36,7 +36,7 @@ export class DiagnosticController {
     return this.diagnosticService.findAll(from, to, userId);
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(
     @Param('id') id: string,
     @Body() updateDiagnosticDto: UpdateDiagnosticDto,
