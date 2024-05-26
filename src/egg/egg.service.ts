@@ -221,7 +221,6 @@ export class EggService {
   async download(coopId: number, date: string): Promise<any> {
     try {
       const { firstDay, lastDay } = getFirstLastDate(date);
-      const coop = await this.coopService.findOne(coopId);
       const eggs = await this.prisma.eggProduction.findMany({
         where: {
           coopId,
@@ -229,9 +228,12 @@ export class EggService {
         },
         orderBy: { id: 'asc' },
       });
+      const listCoop = await this.coopService.findAll();
+      const coop = await this.coopService.findOne(coopId);
 
       const wb = new Excel.Workbook();
       const ws = wb.addWorksheet('Sheet1');
+      const coopSheet = wb.addWorksheet('Kandang');
 
       ws.mergeCells('B2:Y2');
       ws.getCell('B2').value = 'CATATAN HARIAN TELUR';
@@ -899,6 +901,43 @@ export class EggService {
       };
       ws.mergeCells('Q8:T8');
 
+      ws.getCell('AC4').value = 'List Kandang';
+      ws.columns = [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {
+          key: 'list_coop',
+          alignment: { horizontal: 'center' },
+          width: 9.67,
+        },
+      ];
       eggs.forEach((item) => {
         ws.addRow({
           coopId: item.coopId,
@@ -929,6 +968,10 @@ export class EggService {
           EggMass: item.EggMass ? Number(item.EggMass) : '',
           OVK: item.OVK ? Number(item.OVK) : '',
         });
+      });
+
+      listCoop.forEach((item) => {
+        ws.addRow({ list_coop: item.name });
       });
 
       let lastMergedCell = 10;
@@ -1014,7 +1057,7 @@ export class EggService {
     try {
       switch (respUpload.status) {
         case EResponseUpload.cancel:
-          const result = this.prisma.eggProductionTemp.deleteMany({
+          await this.prisma.eggProductionTemp.deleteMany({
             where: { code: respUpload.code },
           });
           break;
@@ -1023,43 +1066,88 @@ export class EggService {
             where: { code: respUpload.code, isDuplicate: true },
           });
 
-          // for (let i = 0; i < dupData.length; i++) {
-          //   await this.prisma.eggProduction.update({
-          //     where: {
-          //       transDate: dupData[i].transDate,
-          //       coopId: dupData[i].coopId,
-          //     },
-          //     data: dupData[i],
-          //   });
-          // }
+          for (let i = 0; i < dupData.length; i++) {
+            await this.prisma.eggProduction.updateMany({
+              where: {
+                transDate: dupData[i].transDate,
+                coopId: dupData[i].coopId,
+              },
+              data: {
+                pop: dupData[i].pop,
+                m: dupData[i].m,
+                afk: dupData[i].afk,
+                sell: dupData[i].sell,
+                finalPop: dupData[i].finalPop,
+                feedType: dupData[i].feedType,
+                feedWeight: dupData[i].feedWeight,
+                feedFIT: dupData[i].feedFIT,
+                prodPieceN: dupData[i].prodPieceN,
+                prodPieceP: dupData[i].prodPieceP,
+                prodPieceBS: dupData[i].prodPieceBS,
+                prodTotalPiece: dupData[i].prodTotalPiece,
+                prodWeightN: dupData[i].prodPieceN,
+                prodWeightP: dupData[i].prodPieceN,
+                prodWeightBS: dupData[i].prodWeightBS,
+                prodTotalWeight: dupData[i].prodTotalWeight,
+                HD: dupData[i].HD,
+                FCR: dupData[i].FCR,
+                EggWeight: dupData[i].EggWeight,
+                EggMass: dupData[i].EggMass,
+                OVK: dupData[i].OVK,
+              },
+            });
+          }
 
-          // const result = this.prisma.eggProductionTemp.deleteMany({
-          //   where: { code: respUpload.code },
-          // });
+          await this.prisma.eggProductionTemp.deleteMany({
+            where: { code: respUpload.code },
+          });
           break;
         case EResponseUpload.skip:
           const newData = await this.prisma.eggProductionTemp.findMany({
             where: { code: respUpload.code, isDuplicate: false },
           });
 
-          // for (let i = 0; i < newData.length; i++) {
-          //   await this.prisma.eggProduction.update({
-          //     where: {
-          //       transDate: newData[i].transDate,
-          //       coopId: newData[i].coopId,
-          //     },
-          //     data: newData[i],
-          //   });
-          // }
+          for (let i = 0; i < newData.length; i++) {
+            await this.prisma.eggProduction.updateMany({
+              where: {
+                transDate: newData[i].transDate,
+                coopId: newData[i].coopId,
+              },
+              data: {
+                pop: dupData[i].pop,
+                m: dupData[i].m,
+                afk: dupData[i].afk,
+                sell: dupData[i].sell,
+                finalPop: dupData[i].finalPop,
+                feedType: dupData[i].feedType,
+                feedWeight: dupData[i].feedWeight,
+                feedFIT: dupData[i].feedFIT,
+                prodPieceN: dupData[i].prodPieceN,
+                prodPieceP: dupData[i].prodPieceP,
+                prodPieceBS: dupData[i].prodPieceBS,
+                prodTotalPiece: dupData[i].prodTotalPiece,
+                prodWeightN: dupData[i].prodPieceN,
+                prodWeightP: dupData[i].prodPieceN,
+                prodWeightBS: dupData[i].prodWeightBS,
+                prodTotalWeight: dupData[i].prodTotalWeight,
+                HD: dupData[i].HD,
+                FCR: dupData[i].FCR,
+                EggWeight: dupData[i].EggWeight,
+                EggMass: dupData[i].EggMass,
+                OVK: dupData[i].OVK,
+              },
+            });
+          }
 
-          // const result = this.prisma.eggProductionTemp.deleteMany({
-          //   where: { code: respUpload.code },
-          // });
+          await this.prisma.eggProductionTemp.deleteMany({
+            where: { code: respUpload.code },
+          });
           break;
 
         default:
           break;
       }
+      return { message: 'Data telah berhasil disimpan.' };
     } catch (error) {}
   }
 }

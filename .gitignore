@@ -2,7 +2,8 @@
 /dist
 /node_modules
 /build
-
+/public/images
+/public/docs
 # prisma
 /prisma/migrations
 

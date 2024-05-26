@@ -3,7 +3,6 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
-  StreamableFile,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -27,10 +26,12 @@ export class TransformInterceptor<T>
         if (data?.stream) {
           return data;
         } else {
+          const message = data?.message || '';
+          delete data.message;
           return {
             statusCode: context.switchToHttp().getResponse().statusCode,
             reqId: context.switchToHttp().getRequest().reqId,
-            message: data?.message || '',
+            message,
             data: data,
           };
         }

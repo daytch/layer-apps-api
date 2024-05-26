@@ -13,7 +13,7 @@ import { CreateFeedsmedicineDto } from './dto/create-feedsmedicine.dto';
 import { UpdateFeedsmedicineDto } from './dto/update-feedsmedicine.dto';
 
 @ApiBearerAuth()
-@ApiTags('obat')
+@ApiTags('Obat')
 @Controller('obat')
 export class FeedsmedicinesController {
   constructor(private readonly feedsmedicinesService: FeedsmedicinesService) {}

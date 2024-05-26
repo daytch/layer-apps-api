@@ -14,7 +14,7 @@ import { CreateDiagnosticDto } from './dto/create-diagnostic.dto';
 import { UpdateDiagnosticDto } from './dto/update-diagnostic.dto';
 
 @ApiBearerAuth()
-@ApiTags('diagnosa')
+@ApiTags('Diagnosa')
 @Controller('diagnostic')
 export class DiagnosticController {
   constructor(private readonly diagnosticService: DiagnosticService) {}

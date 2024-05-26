@@ -19,27 +19,27 @@ export class CoopController {
   constructor(private readonly coopService: CoopService) {}
 
   @Post()
-  create(@Body() createCoopDto: CreateCoopDto) {
-    return this.coopService.create(createCoopDto);
+  async create(@Body() createCoopDto: CreateCoopDto) {
+    return await this.coopService.create(createCoopDto);
   }
 
   @Get()
-  findAll() {
-    return this.coopService.findAll();
+  async findAll() {
+    return await this.coopService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.coopService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    return await this.coopService.findOne(+id);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateCoopDto: UpdateCoopDto) {
-    return this.coopService.update(+id, updateCoopDto);
+  async update(@Param('id') id: string, @Body() updateCoopDto: UpdateCoopDto) {
+    return await this.coopService.update(+id, updateCoopDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.coopService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return await this.coopService.remove(+id);
   }
 }

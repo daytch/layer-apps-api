@@ -23,20 +23,20 @@ export class CoopService {
     return this.prisma.coop.create({ data: dt });
   }
 
-  findAll() {
-    return this.prisma.coop.findMany();
+  async findAll() {
+    return await this.prisma.coop.findMany();
   }
 
-  findOne(id: number) {
-    return this.prisma.coop.findUnique({ where: { id } });
+  async findOne(id: number) {
+    return await this.prisma.coop.findUnique({ where: { id } });
   }
 
   async findOneByName(name: string) {
     return await this.prisma.coop.findFirst({ where: { name } });
   }
 
-  update(id: number, updateCoopDto: UpdateCoopDto) {
-    return this.prisma.coop.update({
+  async update(id: number, updateCoopDto: UpdateCoopDto) {
+    return await this.prisma.coop.update({
       where: { id },
       data: updateCoopDto,
     });
