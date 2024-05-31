@@ -8,12 +8,17 @@ import { Users } from '@prisma/client';
 
 const saltOrRounds = 12;
 
+export interface ICoop {
+  coopId: number;
+  coop_name: string;
+}
+
 export interface IUser {
   id: number;
   nik: string;
   name: string;
   roleId: number;
-  coopId: number;
+  coops: ICoop[];
   email: string;
   phone: string;
   avatar: string;
@@ -37,12 +42,25 @@ export class UsersService {
         role: {
           select: { name: true },
         },
+      },
+    });
+    const coops = await this.prisma.userCoop.findMany({
+      select: {
+        coopId: true,
+        userId: true,
         coop: {
-          select: { name: true },
+          select: {
+            name: true,
+          },
         },
       },
     });
     return users.map((item) => {
+      const c = coops
+        .filter((x) => x.userId === item.id)
+        .map((i) => {
+          return <ICoop>{ coopId: i.coopId, coop_name: i.coop.name };
+        });
       return {
         email: item.email,
         id: item.id,
@@ -52,42 +70,80 @@ export class UsersService {
         phone: item.phone,
         is_active: item.is_active,
         role_name: item.role.name,
-        coop_name: item.coop.name,
+        coops: c,
       };
     });
   }
 
   async findProfile(id: number): Promise<IUser | undefined> {
-    return await this.prisma.users.findUnique({
+    const user = await this.prisma.users.findUnique({
       where: { id },
       select: {
         id: true,
         nik: true,
         name: true,
         roleId: true,
-        coopId: true,
         email: true,
         phone: true,
         avatar: true,
         is_active: true,
       },
     });
+
+    const coops = await this.prisma.userCoop.findMany({
+      where: { userId: user.id },
+      select: {
+        coopId: true,
+        userId: true,
+        coop: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+    const c = coops.map((item) => {
+      return <ICoop>{
+        coopId: item.coopId,
+        coop_name: item.coop.name,
+      };
+    });
+    return { ...user, coops: c };
   }
 
   async getAllActiveUsers(): Promise<IUser[] | undefined> {
-    return await this.prisma.users.findMany({
+    const users = await this.prisma.users.findMany({
       where: { is_active: true },
       select: {
         id: true,
         nik: true,
         name: true,
         roleId: true,
-        coopId: true,
         email: true,
         phone: true,
         avatar: true,
         is_active: true,
       },
+    });
+
+    const coops = await this.prisma.userCoop.findMany({
+      select: {
+        coopId: true,
+        userId: true,
+        coop: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+    return users.map((item) => {
+      const c = coops
+        .filter((x) => x.userId === item.id)
+        .map((i) => {
+          return <ICoop>{ coopId: i.coopId, coop_name: i.coop.name };
+        });
+      return <IUser>{ ...item, coops: c };
     });
   }
 
@@ -99,16 +155,29 @@ export class UsersService {
     if (!user) {
       return null;
     }
+    const coops = await this.prisma.userCoop.findMany({
+      select: {
+        coopId: true,
+        userId: true,
+        coop: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
     return <IUser>{
       id: user.id,
       nik: user.nik,
       name: user.name,
       roleId: user.roleId,
-      coopId: user.coopId,
       email: user.email,
       phone: user.phone,
       avatar: user.avatar,
       is_active: user.is_active,
+      coops: coops.map((i) => {
+        return <ICoop>{ coopId: i.coopId, coop_name: i.coop.name };
+      }),
     };
   }
 
@@ -124,18 +193,33 @@ export class UsersService {
     if (!isMatch) {
       return null;
     }
+    const coops = await this.prisma.userCoop.findMany({
+      where: { userId: user.id },
+      select: {
+        coopId: true,
+        userId: true,
+        coop: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
     return <IUser>{
       id: user.id,
       nik: user.nik,
       name: user.name,
       roleId: user.roleId,
-      coopId: user.coopId,
       email: user.email,
       phone: user.phone,
       avatar: user.avatar,
       is_active: user.is_active,
+      coops: coops.map((i) => {
+        return <ICoop>{ coopId: i.coopId, coop_name: i.coop.name };
+      }),
     };
   }
+
   generateNIK = (total: number) => {
     let nik = `${total + 1}`;
     while (nik.length < 3) {
@@ -143,6 +227,7 @@ export class UsersService {
     }
     return `CK-${nik}`;
   };
+
   async create(createUsersDto: CreateUsersDto) {
     try {
       const users = await this.prisma.$queryRaw<Users[]>`SELECT * FROM "Users"`;
@@ -152,12 +237,23 @@ export class UsersService {
         password: await bcrypt.hash(createUsersDto.password, saltOrRounds),
         name: createUsersDto.name,
         role: { connect: { id: createUsersDto.roleId } },
-        coop: { connect: { id: createUsersDto.coopId } },
         email: createUsersDto.email,
         phone: createUsersDto.phone,
         avatar: createUsersDto.avatar,
       };
+      const u = await this.prisma.users.create({
+        data: dt,
+      });
 
+      if (createUsersDto.coopId.length > 0) {
+        const data = createUsersDto.coopId?.map((itm) => {
+          return {
+            userId: u.id,
+            coopId: itm,
+          };
+        });
+        await this.prisma.userCoop.createMany({ data: data });
+      }
       return this.prisma.users.create({
         data: dt,
       });

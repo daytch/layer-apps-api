@@ -14,7 +14,7 @@ export class User {
         nik: 'CK-001',
         name: 'Superadmin',
         roleId: 1,
-        coopId: 1,
+        // coopId: 1,
         email: 'me@nurulhidayat.com',
         phone: '085866661326',
         is_active: true,
@@ -28,7 +28,7 @@ export class User {
         nik: 'CK-002',
         name: 'Admin',
         roleId: 2,
-        coopId: 1,
+        // coopId: 1,
         email: 'admin@yopmail.com',
         phone: '085866661326',
         is_active: true,
@@ -42,7 +42,7 @@ export class User {
         nik: 'CK-003',
         name: 'Mandor',
         roleId: 3,
-        coopId: 1,
+        // coopId: 1,
         email: 'mandor@yopmail.com',
         phone: '085866661326',
         is_active: true,
@@ -56,12 +56,11 @@ export class User {
         nik: 'CK-004',
         name: 'Anak Kandang',
         roleId: 4,
-        coopId: 1,
+        // coopId: 1,
         email: 'anak_kandang@yopmail.com',
         phone: '085866661326',
         is_active: true,
       },
     });
-  
   }
 }

@@ -24,13 +24,13 @@ export class FeedsmedicinesController {
   }
 
   @Get()
-  findAll() {
-    return this.feedsmedicinesService.findAll();
+  async findAll() {
+    return await this.feedsmedicinesService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.feedsmedicinesService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    return await this.feedsmedicinesService.findOne(+id);
   }
 
   @Put(':id')

@@ -8,6 +8,7 @@ import { Coop } from './seeds/coop';
 import { User } from './seeds/user';
 import { SOP } from './seeds/sop';
 import { Medicine } from './seeds/medicine';
+import { UserCoop } from './seeds/usercoop';
 
 // initialize Prisma Client
 const prisma = new PrismaClient();
@@ -32,6 +33,10 @@ async function main() {
   // create user
   const user = new User();
   await user.seedData();
+
+  // create userCoop
+  const userCoop = new UserCoop();
+  await userCoop.seedData();
 
   // SOP
   const sop = new SOP();

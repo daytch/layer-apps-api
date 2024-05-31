@@ -30,7 +30,7 @@ export class AuthService {
       uid: user.id,
       username: user.nik,
       roleId: user.roleId,
-      coopId: user.coopId,
+      // coopId: user.coopId,
     };
     return {
       ...user,

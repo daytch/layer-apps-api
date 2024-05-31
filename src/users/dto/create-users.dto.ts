@@ -1,4 +1,10 @@
-import { IsString, IsInt, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsInt,
+  IsOptional,
+  IsArray,
+  ArrayMinSize,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUsersDto {
@@ -14,9 +20,10 @@ export class CreateUsersDto {
   @IsInt()
   roleId: number;
 
+  @IsArray()
   @ApiProperty()
-  @IsInt()
-  coopId: number;
+  @ArrayMinSize(1)
+  coopId: number[];
 
   @ApiProperty()
   @IsOptional()

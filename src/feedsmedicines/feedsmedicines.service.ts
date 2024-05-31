@@ -21,12 +21,69 @@ export class FeedsmedicinesService {
     return this.prisma.feedsMedicines.create({ data: dt });
   }
 
-  findAll() {
-    return this.prisma.feedsMedicines.findMany();
+  async findAll() {
+    const feeds = await this.prisma.feedsMedicines.findMany({
+      select: {
+        coopId: true,
+        name: true,
+        SKU: true,
+        userId: true,
+        quantity: true,
+        uom: true,
+        price: true,
+        total: true,
+        coop: {
+          select: { name: true },
+        },
+        id: true,
+      },
+    });
+    return feeds?.map((item) => {
+      return {
+        id: item.id,
+        coopId: item.coopId,
+        name: item.name,
+        SKU: item.SKU,
+        userId: item.userId,
+        quantity: item.quantity,
+        uom: item.uom,
+        price: item.price,
+        total: item.total,
+        coop_name: item.coop.name,
+      };
+    });
   }
 
-  findOne(id: number) {
-    return this.prisma.feedsMedicines.findUnique({ where: { id } });
+  async findOne(id: number) {
+    const feed = await this.prisma.feedsMedicines.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        coopId: true,
+        name: true,
+        SKU: true,
+        userId: true,
+        quantity: true,
+        uom: true,
+        price: true,
+        total: true,
+        coop: {
+          select: { name: true },
+        },
+      },
+    });
+    return {
+      id: feed.id,
+      coopId: feed.coopId,
+      name: feed.name,
+      SKU: feed.SKU,
+      userId: feed.userId,
+      quantity: feed.quantity,
+      uom: feed.uom,
+      price: feed.price,
+      total: feed.total,
+      coop_name: feed.coop.name,
+    };
   }
 
   update(id: number, dto: UpdateFeedsmedicineDto) {
