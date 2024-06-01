@@ -9,6 +9,7 @@ import {
   Put,
   Delete,
   Req,
+  Res,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -21,6 +22,8 @@ import { CreateUsersDto } from './dto/create-users.dto';
 import { UpdateUsersDto } from './dto/update-users.dto';
 import { ErrorsInterceptor } from 'src/interceptors/errors.interceptor';
 import { Request } from 'express';
+import { join } from 'path';
+import { Observable, of } from 'rxjs';
 
 @ApiBearerAuth()
 @ApiTags('Users')
@@ -29,11 +32,12 @@ import { Request } from 'express';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Public()
   @Post('upload')
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({
-        destination: './dist/public/images',
+        destination: './public/images',
         filename: editFileName,
       }),
       fileFilter: imageFileFilter,
@@ -41,14 +45,23 @@ export class UsersController {
   )
   @ApiConsumes('multipart/form-data')
   @ApiBody({
-    description: 'List of users',
+    description: 'Upload avatar profile',
     type: FileUploadDto,
   })
   async uploadedFile(@Req() req: Request, @UploadedFile() file) {
     const response = {
-      path: `${req.protocol}://${req.get('Host')}/${file.filename}`,
+      path: `${req.protocol}://${req.get('Host')}/users/${file.filename}`,
     };
     return response;
+  }
+
+  @Public()
+  @Get(':imagename')
+  seeUploadedFile(
+    @Param('imagename') imagename: string,
+    @Res() res,
+  ): Observable<object> {
+    return of(res.sendFile(join(process.cwd(), 'public/images/' + imagename)));
   }
 
   @Public()
