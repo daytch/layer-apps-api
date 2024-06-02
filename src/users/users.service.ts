@@ -262,19 +262,29 @@ export class UsersService {
     }
   }
 
-  update(id: number, updateUsersDto: UpdateUsersDto) {
+  async update(id: number, updateUsersDto: UpdateUsersDto) {
     try {
-      const data = {
-        name: updateUsersDto.name,
-        roleId: updateUsersDto.roleId,
-        coopId: updateUsersDto.coopId,
-        email: updateUsersDto.email,
-        phone: updateUsersDto.phone,
-        avatar: updateUsersDto.avatar,
-      };
-      return this.prisma.users.update({
+      await this.prisma.userCoop.deleteMany({ where: { userId: id } });
+      const dataUserCoop = [];
+      for (let idx = 0; idx < updateUsersDto?.coopId?.length; idx++) {
+        dataUserCoop.push({
+          userId: id,
+          coopId: Number(updateUsersDto?.coopId[idx]),
+        });
+      }
+      await this.prisma.userCoop.createMany({
+        data: dataUserCoop,
+        skipDuplicates: true,
+      });
+      return await this.prisma.users.update({
         where: { id },
-        data,
+        data: {
+          name: updateUsersDto.name,
+          email: updateUsersDto.email,
+          phone: updateUsersDto.phone,
+          avatar: updateUsersDto.avatar,
+          roleId: updateUsersDto.roleId,
+        },
       });
     } catch (error) {
       throw error;
