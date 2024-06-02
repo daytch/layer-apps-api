@@ -26,7 +26,8 @@ export class DiagnosticService {
     fm."name" as obat, cd."dose" as dosis, cd."status" as progres
     from "CoopDiagnostics" cd 
     inner join "Coop" c on cd."coopId"=c."id"
-    inner join "Users" u on u."coopId"=c."id"
+    inner join "UserCoop" uc on c.id=uc.coopId,
+    inner join "Users" u on u."id"=uc."userId"
     left join "FeedsMedicines" fm on cd."medicineId"=fm."id" ${where}`);
   }
 
