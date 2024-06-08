@@ -7,8 +7,30 @@ import { PrismaService } from '../prisma/prisma.service';
 export class CashflowService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(createCashflowDto: CreateCashflowDto) {
-    return this.prisma.cashflow.create({ data: createCashflowDto });
+  async create(createCashflowDto: CreateCashflowDto) {
+    try {
+      const result = await this.prisma.cashflow.groupBy({
+        by: ['tipe'],
+        _sum: {
+          nominal: true,
+        },
+      });
+      const total_debit =
+        result.filter((x) => x.tipe === 'debit')[0]?._sum?.nominal || 0;
+      const total_credit =
+        result.filter((x) => x.tipe === 'kredit')[0]?._sum?.nominal || 0;
+      const total =
+        createCashflowDto.tipe === 'debit'
+          ? total_debit + createCashflowDto.nominal - total_credit
+          : total_debit - (total_credit + createCashflowDto.nominal);
+      const data = {
+        ...createCashflowDto,
+        trans_date: new Date(),
+        total: total,
+      };
+
+      return this.prisma.cashflow.create({ data });
+    } catch (error) {}
   }
 
   findAll() {

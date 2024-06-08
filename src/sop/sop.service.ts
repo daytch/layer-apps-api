@@ -70,9 +70,9 @@ export class SopService {
   async getProgressAllEmployee(roleId: string, date: string) {
     const progress = await this.prisma
       .$queryRawUnsafe(`SELECT u."id", u."name", ps."detail", ps."createdAt" as date
-    FROM "ProgressSOP" ps 
-    join "Users" u on ps."userId"=u."id" 
-    where ps."roleId"=${roleId} and to_char(ps."createdAt",'YYYY-MM-DD') = '${date}'`);
+    FROM "ProgressSOP" ps
+    inner join "Users" u on ps."userId"=u."id" 
+    where u."roleId"=${roleId} and to_char(ps."createdAt",'YYYY-MM-DD') = '${date}'`);
 
     return progress;
   }

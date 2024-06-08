@@ -7,6 +7,9 @@ import { Prisma } from '@prisma/client';
 import { greenCol } from 'src/egg/upload';
 import { alfaNumeric } from 'src/utils/randomizer.utils';
 import { ResponseUpload } from './dto/ResponseUpload.dto';
+import { AuthService } from 'src/auth/auth.service';
+import { ParamGetAllData } from './dto/ParamsGetAllData.dto';
+import { DeleteEggs } from './dto/DeleteEggs.dto';
 
 export enum EResponseUpload {
   cancel,
@@ -65,6 +68,7 @@ function getValue(data: any, tipe: string) {
     return convertValue[tipe](data);
   }
 }
+
 function daysInMonth(month, year) {
   return new Date(year, month, 0).getDate();
 }
@@ -86,10 +90,43 @@ export class EggService {
   constructor(
     private readonly coopService: CoopService,
     private readonly prisma: PrismaService,
+    private readonly authService: AuthService,
   ) {
     prisma.$on('query' as never, (event: Prisma.QueryEvent) => {
       console.log('Query: ' + event.query);
       console.log('Duration: ' + event.duration + 'ms');
+    });
+  }
+
+  async findAll(params: ParamGetAllData, req: any) {
+    let where = {};
+
+    const user = await this.authService.getProfile(req.user);
+    where = { coopId: Number(params?.coopId || user?.coops[0].coopId) };
+    console.log(
+      dayjs(params.period || '')
+        .startOf('month')
+        .add(1, 'day'),
+    );
+    where = {
+      ...where,
+      transDate: {
+        lte: params.period
+          ? dayjs(params.period).endOf('month')
+          : dayjs().endOf('month'),
+        gte: params.period
+          ? dayjs(params.period).startOf('month').add(1, 'day')
+          : dayjs().startOf('month').add(1, 'day'),
+      },
+    };
+
+    const eggs = await this.prisma.eggProduction.findMany({ where });
+    return eggs;
+  }
+
+  async delete(data: DeleteEggs) {
+    return this.prisma.eggProduction.deleteMany({
+      where: { id: { in: data.ids } },
     });
   }
 
@@ -170,7 +207,6 @@ export class EggService {
             EggMass: getValue(mass, 'float'),
             OVK: getValue(ovk, 'float'),
           };
-
           const activeData = listEggs.filter((egg) => {
             return (
               egg.coopId === data.coopId &&
@@ -262,6 +298,7 @@ export class EggService {
       ws.getCell('D4').value = coop.name;
       ws.getCell('B4').font = { bold: true };
       ws.getCell('B4').border = { bottom: { style: 'thin' } };
+
       ws.getCell('C4').font = { bold: true };
       ws.getCell('C4').border = { bottom: { style: 'thin' } };
       ws.getCell('D4').font = { bold: true };

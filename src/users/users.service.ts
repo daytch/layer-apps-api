@@ -276,16 +276,34 @@ export class UsersService {
         data: dataUserCoop,
         skipDuplicates: true,
       });
-      return await this.prisma.users.update({
-        where: { id },
-        data: {
-          name: updateUsersDto.name,
-          email: updateUsersDto.email,
-          phone: updateUsersDto.phone,
-          avatar: updateUsersDto.avatar,
-          roleId: updateUsersDto.roleId,
-        },
-      });
+      if (updateUsersDto.password) {
+        const password = await bcrypt.hash(
+          updateUsersDto.password,
+          saltOrRounds,
+        );
+        return await this.prisma.users.update({
+          where: { id },
+          data: {
+            name: updateUsersDto.name,
+            email: updateUsersDto.email,
+            password,
+            phone: updateUsersDto.phone,
+            avatar: updateUsersDto.avatar,
+            roleId: updateUsersDto.roleId,
+          },
+        });
+      } else {
+        return await this.prisma.users.update({
+          where: { id },
+          data: {
+            name: updateUsersDto.name,
+            email: updateUsersDto.email,
+            phone: updateUsersDto.phone,
+            avatar: updateUsersDto.avatar,
+            roleId: updateUsersDto.roleId,
+          },
+        });
+      }
     } catch (error) {
       throw error;
     }

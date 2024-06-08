@@ -22,7 +22,6 @@ export const multerConfig = {
   dest: process.env.UPLOAD_LOCATION || './public/docs',
 };
 export const SUPPORTED_FILES = ['xlsx', 'xls'];
-const PATH_DOWNLOADED_FILE = './public/docs';
 export const multerOptions = {
   limits: {
     fileSize: +process.env.MAX_FILE_SIZE || 1024 * 1024,
@@ -46,10 +45,10 @@ export const multerOptions = {
     destination: (req: any, file: any, cb: any) => {
       const uploadPath = multerConfig.dest;
       /* Create folder if doesn't exist */
-      if (!existsSync(PATH_DOWNLOADED_FILE)) {
-        mkdirSync(PATH_DOWNLOADED_FILE);
+      if (!existsSync(uploadPath)) {
+        mkdirSync(uploadPath);
       }
-      cb(null, PATH_DOWNLOADED_FILE);
+      cb(null, uploadPath);
     },
     /* File modification details */
     filename: (req: any, file: any, cb: any) => {

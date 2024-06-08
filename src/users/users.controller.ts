@@ -50,7 +50,7 @@ export class UsersController {
   })
   async uploadedFile(@Req() req: Request, @UploadedFile() file) {
     const response = {
-      path: `${req.protocol}://${req.get('Host')}/users/${file.filename}`,
+      path: `https://${req.get('Host')}/users/${file.filename}`,
     };
     return response;
   }

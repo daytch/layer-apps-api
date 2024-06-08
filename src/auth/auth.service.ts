@@ -10,7 +10,23 @@ export interface IPayload {
   roleId: number;
   coopId: number;
 }
+export interface IUserProfile {
+  id: number;
+  nik: string;
+  name: string;
+  roleId: number;
+  email: string;
+  phone: string;
+  avatar: null;
+  is_active: boolean;
+  coops: ICoop[];
+  role_name: string;
+}
 
+export interface ICoop {
+  coopId: number;
+  coop_name: string;
+}
 @Injectable()
 export class AuthService {
   constructor(
@@ -39,14 +55,14 @@ export class AuthService {
     };
   }
 
-  async getProfile(payload: IPayload): Promise<any> {
+  async getProfile(payload: IPayload): Promise<IUserProfile> {
     const user = await this.usersService.findOneById(payload.uid);
     if (!user) {
       throw new UnauthorizedException();
     }
 
     const role = await this.roleService.findOne(user.roleId);
-    return {
+    return <IUserProfile>{
       ...user,
       role_name: role.name,
     };

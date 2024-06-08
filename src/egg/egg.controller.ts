@@ -8,6 +8,8 @@ import {
   Param,
   Header,
   Body,
+  Query,
+  Request,
 } from '@nestjs/common';
 import { EggService } from './egg.service';
 import { ApiTags, ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
@@ -15,7 +17,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { FileUploadDto } from './dto/fileUpload.dto';
 import { multerOptions } from 'src/egg/upload';
 import { ResponseUpload } from './dto/ResponseUpload.dto';
-import { Public } from 'src/auth/constants';
+import { ParamGetAllData } from './dto/ParamsGetAllData.dto';
+import { DeleteEggs } from './dto/DeleteEggs.dto';
 
 @ApiBearerAuth()
 @ApiTags('Egg')
@@ -34,7 +37,6 @@ export class EggController {
     return this.eggService.proccess(file);
   }
 
-  @Public()
   @Get('download/:coopId/:date')
   @Header('content-type', 'application/vnd.ms-excel')
   @Header('content-disposition', 'attachment; filename="report.xlsx"')
@@ -49,5 +51,15 @@ export class EggController {
   @Post('duplicate-confirm')
   async duplicateConfirmation(@Body() respUpload: ResponseUpload) {
     return this.eggService.confirm(respUpload);
+  }
+
+  @Get()
+  async findAll(@Query() params: ParamGetAllData, @Request() req) {
+    return await this.eggService.findAll(params, req);
+  }
+
+  @Post('delete')
+  async delete(@Body() data: DeleteEggs) {
+    return await this.eggService.delete(data);
   }
 }
