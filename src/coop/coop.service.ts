@@ -38,7 +38,7 @@ export class CoopService {
   async update(id: number, updateCoopDto: UpdateCoopDto) {
     return await this.prisma.coop.update({
       where: { id },
-      data: updateCoopDto,
+      data: { name: updateCoopDto.name, address: updateCoopDto.address },
     });
   }
 
