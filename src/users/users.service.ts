@@ -165,6 +165,7 @@ export class UsersService {
           },
         },
       },
+      where: { userId: user.id },
     });
     return <IUser>{
       id: user.id,
