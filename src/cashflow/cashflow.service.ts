@@ -7,18 +7,22 @@ import { PrismaService } from '../prisma/prisma.service';
 export class CashflowService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async getTotalDebitCredit() {
+    const result = await this.prisma.cashflow.groupBy({
+      by: ['tipe'],
+      _sum: {
+        nominal: true,
+      },
+    });
+    const total_debit =
+      result.filter((x) => x.tipe === 'debit')[0]?._sum?.nominal || 0;
+    const total_credit =
+      result.filter((x) => x.tipe === 'kredit')[0]?._sum?.nominal || 0;
+    return { total_debit, total_credit };
+  }
   async create(createCashflowDto: CreateCashflowDto) {
     try {
-      const result = await this.prisma.cashflow.groupBy({
-        by: ['tipe'],
-        _sum: {
-          nominal: true,
-        },
-      });
-      const total_debit =
-        result.filter((x) => x.tipe === 'debit')[0]?._sum?.nominal || 0;
-      const total_credit =
-        result.filter((x) => x.tipe === 'kredit')[0]?._sum?.nominal || 0;
+      const { total_debit, total_credit } = await this.getTotalDebitCredit();
       const total =
         createCashflowDto.tipe === 'debit'
           ? total_debit + createCashflowDto.nominal - total_credit
@@ -33,8 +37,12 @@ export class CashflowService {
     } catch (error) {}
   }
 
-  findAll() {
-    return this.prisma.cashflow.findMany({
+  async findAll() {
+    const { total_debit, total_credit } = await this.getTotalDebitCredit();
+    const cashflow = await this.prisma.cashflow.findMany({
+      orderBy: {
+        trans_date: 'desc',
+      },
       select: {
         id: true,
         periode: true,
@@ -44,6 +52,7 @@ export class CashflowService {
         total: true,
       },
     });
+    return { cashflow, total: total_debit - total_credit };
   }
 
   findOne(id: number) {
