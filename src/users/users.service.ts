@@ -220,8 +220,8 @@ export class UsersService {
     };
   }
 
-  generateNIK = (total: number) => {
-    let nik = `${total + 1}`;
+  generateNIK = (lastId: number) => {
+    let nik = `${lastId + 1}`;
     while (nik.length < 3) {
       nik = '0' + nik;
     }
@@ -230,10 +230,22 @@ export class UsersService {
 
   async create(createUsersDto: CreateUsersDto) {
     try {
-      const users = await this.prisma.$queryRaw<Users[]>`SELECT * FROM "Users"`;
+      const lastId = await this.prisma
+        .$queryRaw<number>`SELECT id FROM "Users" order by id desc limit 1`;
+      const user = await this.prisma.users.findMany({
+        where: {
+          OR: [
+            { email: createUsersDto.email },
+            { phone: createUsersDto.phone },
+          ],
+        },
+      });
+      if (user.length > 0) {
+        throw new Error('Email / Nomor HP sudah terdaftar');
+      }
 
       const dt = {
-        nik: this.generateNIK(users.length),
+        nik: this.generateNIK(lastId[0].id),
         password: await bcrypt.hash(createUsersDto.password, saltOrRounds),
         name: createUsersDto.name,
         role: { connect: { id: createUsersDto.roleId } },
