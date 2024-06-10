@@ -1,8 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class ParamGetAllData {
+export class Param {
   @ApiProperty()
   coopId: number;
   @ApiPropertyOptional()
-  period: string;
+  period: number;
 }

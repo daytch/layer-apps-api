@@ -22,6 +22,7 @@ import { DiagnosticModule } from './diagnostic/diagnostic.module';
 import { FeedsmedicinesModule } from './feedsmedicines/feedsmedicines.module';
 import { EggModule } from './egg/egg.module';
 import { NotifModule } from './notif/notif.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import configuration from './configs/configuration';
 
 @Module({
@@ -48,6 +49,7 @@ import configuration from './configs/configuration';
     FeedsmedicinesModule,
     EggModule,
     NotifModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [
