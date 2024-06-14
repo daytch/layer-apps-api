@@ -1,13 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { CreateDashboardDto } from './dto/create-dashboard.dto';
-import { UpdateDashboardDto } from './dto/update-dashboard.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as dayjs from 'dayjs';
 import { ParamGetAllData } from 'src/egg/dto/ParamsGetAllData.dto';
+import { CashflowService } from 'src/cashflow/cashflow.service';
 
 @Injectable()
 export class DashboardService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cashflow: CashflowService,
+  ) {}
 
   async FCRChart(params: ParamGetAllData) {
     try {
@@ -46,23 +48,20 @@ export class DashboardService {
     }
   }
 
-  create(createDashboardDto: CreateDashboardDto) {
-    return 'This action adds a new dashboard';
-  }
+  async getAllData() {
+    const { total_debit, total_credit } =
+      await this.cashflow.getTotalDebitCredit();
+    const users = await this.prisma.users.findMany({
+      select: {
+        id: true,
+        name: true,
+        role: {
+          select: { name: true },
+        },
+      },
+    });
+    debugger;
 
-  findAll() {
-    return `This action returns all dashboard`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} dashboard`;
-  }
-
-  update(id: number, updateDashboardDto: UpdateDashboardDto) {
-    return `This action updates a #${id} dashboard`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} dashboard`;
+    return { total: total_debit - total_credit, total_debit, total_credit };
   }
 }

@@ -52,7 +52,7 @@ export class SopService {
     const progress = await this.prisma.progressSOP.findMany({
       where: {
         userId: completeDto.userId,
-        createdAt: { gte: new Date() },
+        createdAt: new Date(),
       },
     });
     const detail = progress.length > 0 ? progress[0].detail : '';

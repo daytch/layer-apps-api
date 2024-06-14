@@ -6,6 +6,7 @@ import {
   Put,
   Param,
   Delete,
+  Request,
 } from '@nestjs/common';
 import { CashflowService } from './cashflow.service';
 import { CreateCashflowDto } from './dto/create-cashflow.dto';
@@ -19,8 +20,8 @@ export class CashflowController {
   constructor(private readonly cashflowService: CashflowService) {}
 
   @Post()
-  create(@Body() createCashflowDto: CreateCashflowDto) {
-    return this.cashflowService.create(createCashflowDto);
+  create(@Body() createCashflowDto: CreateCashflowDto, @Request() req) {
+    return this.cashflowService.create(createCashflowDto, req.user);
   }
 
   @Get()

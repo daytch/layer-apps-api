@@ -1,11 +1,11 @@
 # docker-compose.yml
 
-version: '3.8'
 services:
   postgres:
     image: postgres:13.5
     restart: always
     environment:
+      - TZ=Asia/Jakarta
       - POSTGRES_USER=recipe
       - POSTGRES_PASSWORD=RecipePassword
     volumes:

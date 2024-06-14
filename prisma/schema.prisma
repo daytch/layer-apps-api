@@ -16,8 +16,8 @@ datasource db {
 model Role {
   id        Int        @id @default(autoincrement())
   name      String     @unique
-  createdAt DateTime   @default(now())
-  updateAt  DateTime   @updatedAt
+  createdAt DateTime   @default(now()) @db.Timestamptz(3)
+  updateAt  DateTime   @updatedAt @db.Timestamptz(3)
   RoleMenu  RoleMenu[]
   Users     Users[]
   SOP       SOP[]
@@ -29,8 +29,8 @@ model Menu {
   seq       Int
   path      String
   icon      String?
-  createdAt DateTime   @default(now())
-  updateAt  DateTime   @updatedAt
+  createdAt DateTime   @default(now()) @db.Timestamptz(3)
+  updateAt  DateTime   @updatedAt @db.Timestamptz(3)
   RoleMenu  RoleMenu[]
 }
 
@@ -40,8 +40,8 @@ model RoleMenu {
   roleId    Int
   menu      Menu     @relation(fields: [menuId], references: [id])
   menuId    Int
-  createdAt DateTime @default(now())
-  updateAt  DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updateAt  DateTime @updatedAt @db.Timestamptz(3)
 }
 
 model UserCoop {
@@ -50,8 +50,8 @@ model UserCoop {
   userId    Int
   coop      Coop     @relation(fields: [coopId], references: [id])
   coopId    Int
-  createdAt DateTime @default(now())
-  updateAt  DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updateAt  DateTime @updatedAt @db.Timestamptz(3)
 }
 
 model Users {
@@ -65,12 +65,13 @@ model Users {
   phone           String?
   avatar          String?
   is_active       Boolean           @default(true)
-  createdAt       DateTime          @default(now())
-  updateAt        DateTime          @updatedAt
+  createdAt       DateTime          @default(now()) @db.Timestamptz(3)
+  updateAt        DateTime          @updatedAt @db.Timestamptz(3)
   ProgressSOP     ProgressSOP[]
   CoopDiagnostics CoopDiagnostics[]
   FeedsMedicines  FeedsMedicines[]
   UserCoop        UserCoop[]
+  Cashflows       Cashflow[]
 }
 
 model Coop {
@@ -78,8 +79,8 @@ model Coop {
   name            String
   nik             String            @unique
   address         String
-  createdAt       DateTime          @default(now())
-  updateAt        DateTime          @updatedAt
+  createdAt       DateTime          @default(now()) @db.Timestamptz(3)
+  updateAt        DateTime          @updatedAt @db.Timestamptz(3)
   FeedsMedicines  FeedsMedicines[]
   EggProduction   EggProduction[]
   CoopDiagnostics CoopDiagnostics[]
@@ -88,13 +89,15 @@ model Coop {
 
 model Cashflow {
   id         Int      @id @default(autoincrement())
-  periode    DateTime @db.Date
-  trans_date DateTime
+  periode    DateTime @db.Date 
+  user       Users    @relation(fields: [userId], references: [id])
+  userId     Int
+  trans_date DateTime @db.Timestamptz(3)
   tipe       String
   nominal    Int
   total      Int
-  createdAt  DateTime @default(now())
-  updateAt   DateTime @updatedAt
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  updateAt   DateTime @updatedAt @db.Timestamptz(3)
 }
 
 model SOP {
@@ -104,8 +107,8 @@ model SOP {
   title       String
   time        String
   description String
-  createdAt   DateTime @default(now())
-  updateAt    DateTime @updatedAt
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  updateAt    DateTime @updatedAt @db.Timestamptz(3)
 }
 
 model ProgressSOP {
@@ -113,8 +116,8 @@ model ProgressSOP {
   user      Users    @relation(fields: [userId], references: [id])
   userId    Int
   detail    Json
-  createdAt DateTime @default(now())
-  updateAt  DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updateAt  DateTime @updatedAt @db.Timestamptz(3)
 }
 
 model FeedsMedicines {
@@ -129,8 +132,8 @@ model FeedsMedicines {
   uom                   String?
   price                 Int
   total                 Int
-  createdAt             DateTime                @default(now())
-  updateAt              DateTime                @updatedAt
+  createdAt             DateTime                @default(now()) @db.Timestamptz(3)
+  updateAt              DateTime                @updatedAt @db.Timestamptz(3)
   HistoryFeedsMedicines HistoryFeedsMedicines[]
   CoopDiagnostics       CoopDiagnostics[]
 }
@@ -142,15 +145,15 @@ model HistoryFeedsMedicines {
   quantity  Int
   tipe      String
   transDate DateTime
-  createdAt DateTime       @default(now())
-  updateAt  DateTime       @updatedAt
+  createdAt DateTime       @default(now()) @db.Timestamptz(3)
+  updateAt  DateTime       @updatedAt @db.Timestamptz(3)
 }
 
 model EggProduction {
   id              Int      @id @default(autoincrement())
   coop            Coop     @relation(fields: [coopId], references: [id])
   coopId          Int
-  transDate       DateTime
+  transDate       DateTime @db.Timestamptz(3)
   ageInDay        Int?
   ageInWeek       Int?
   pop             Int?
@@ -174,8 +177,8 @@ model EggProduction {
   EggWeight       Decimal?
   EggMass         Decimal?
   OVK             Decimal?
-  createdAt       DateTime @default(now())
-  updateAt        DateTime @updatedAt
+  createdAt       DateTime @default(now()) @db.Timestamptz(3)
+  updateAt        DateTime @updatedAt @db.Timestamptz(3)
 }
 
 model EggProductionTemp {
@@ -183,7 +186,7 @@ model EggProductionTemp {
   isDuplicate     Boolean
   code            String
   coopId          Int
-  transDate       DateTime
+  transDate       DateTime @db.Timestamptz(3)
   ageInDay        Int?
   ageInWeek       Int?
   pop             Int?
@@ -207,15 +210,15 @@ model EggProductionTemp {
   EggWeight       Decimal?
   EggMass         Decimal?
   OVK             Decimal?
-  createdAt       DateTime @default(now())
-  updateAt        DateTime @updatedAt
-}
+  createdAt       DateTime @default(now()) @db.Timestamptz(3)
+  updateAt        DateTime @updatedAt @db.Timestamptz(3)
+} 
 
 model CoopDiagnostics {
   id         Int             @id @default(autoincrement())
   coop       Coop            @relation(fields: [coopId], references: [id])
   coopId     Int
-  transDate  DateTime
+  transDate  DateTime @db.Timestamptz(3)
   disease    String
   medicine   FeedsMedicines? @relation(fields: [medicineId], references: [id])
   medicineId Int?
@@ -223,6 +226,6 @@ model CoopDiagnostics {
   status     String?
   reporter   Users           @relation(fields: [reporterId], references: [id])
   reporterId Int
-  createdAt  DateTime        @default(now())
-  updateAt   DateTime        @updatedAt
+  createdAt  DateTime        @default(now()) @db.Timestamptz(3)
+  updateAt   DateTime        @updatedAt @db.Timestamptz(3)
 }

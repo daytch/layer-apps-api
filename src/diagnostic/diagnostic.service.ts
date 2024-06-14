@@ -9,7 +9,12 @@ export class DiagnosticService {
   constructor(private readonly prisma: PrismaService) {}
 
   create(createDiagnosticDto: CreateDiagnosticDto) {
-    return this.prisma.coopDiagnostics.create({ data: createDiagnosticDto });
+    return this.prisma.coopDiagnostics.create({
+      data: {
+        ...createDiagnosticDto,
+        transDate: new Date(createDiagnosticDto.transDate),
+      },
+    });
   }
 
   async findAll(from: string, to: string, userId: number) {

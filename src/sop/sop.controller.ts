@@ -38,7 +38,7 @@ export class SopController {
   }
 
   @Get(':roleId')
-  findByRoleId(@Param('roleId') roleId: string) {
+  async findByRoleId(@Param('roleId') roleId: string) {
     return this.sopService.findByRoleId(+roleId);
   }
 

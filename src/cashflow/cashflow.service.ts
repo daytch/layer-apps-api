@@ -2,6 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { CreateCashflowDto } from './dto/create-cashflow.dto';
 import { UpdateCashflowDto } from './dto/update-cashflow.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { IPayload } from 'src/auth/auth.service';
+import * as dayjs from 'dayjs';
+import * as utc from 'dayjs/plugin/utc';
+import * as timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.tz.setDefault('Asia/Jakarta');
 
 @Injectable()
 export class CashflowService {
@@ -20,7 +28,7 @@ export class CashflowService {
       result.filter((x) => x.tipe === 'kredit')[0]?._sum?.nominal || 0;
     return { total_debit, total_credit };
   }
-  async create(createCashflowDto: CreateCashflowDto) {
+  async create(createCashflowDto: CreateCashflowDto, req: IPayload) {
     try {
       const { total_debit, total_credit } = await this.getTotalDebitCredit();
       const total =
@@ -29,12 +37,16 @@ export class CashflowService {
           : total_debit - (total_credit + createCashflowDto.nominal);
       const data = {
         ...createCashflowDto,
-        trans_date: new Date(),
+        trans_date: dayjs().tz('UTC').toDate(),
+        periode: dayjs(createCashflowDto.periode).tz('UTC').toDate(),
         total: total,
+        userId: req.uid,
       };
 
       return this.prisma.cashflow.create({ data });
-    } catch (error) {}
+    } catch (error) {
+      throw error;
+    }
   }
 
   async findAll() {

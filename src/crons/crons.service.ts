@@ -3,6 +3,7 @@ import { Cron, /*Interval, Timeout,*/ CronExpression } from '@nestjs/schedule';
 import { UsersService } from '../users/users.service';
 import { SopService } from '../sop/sop.service';
 import { PrismaService } from '../prisma/prisma.service';
+import * as dayjs from 'dayjs';
 
 export type TProgressSOP = {
   userId: number;
@@ -29,30 +30,28 @@ export class CronsService {
     return SOPdetail;
   };
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Cron(CronExpression.EVERY_DAY_AT_1AM, {
+    name: 'SOP',
+    timeZone: 'Asia/Jakarta',
+  })
   async handleCron() {
     try {
       this.logger.debug('job insert data SOP is starting.');
       const users: any = await this.usersService.getAllActiveUsers();
 
       const allSOP = [];
-      const progress = await this.prisma.progressSOP.findMany({
-        where: {
-          createdAt: {
-            // new Date() creates date with current time and day and etc.
-            gte: new Date(),
-          },
-        },
-      });
+      const progress: { userId: number }[] = await this.prisma
+        .$queryRaw`select ps."userId" from "ProgressSOP" ps where CAST(ps."createdAt" as DATE)=CAST(${dayjs().format('YYYY-MM-DD')} as DATE)`;
 
       for (let index = 0; index < users.length; index++) {
         const user = users[index];
         const detail = await this.getSOPByRoleId(user.roleId);
         if (
           Object.keys(detail).length > 0 &&
-          progress.filter((x) => x.userId === user.id).length < 1
+          progress?.filter((x) => x.userId === user.id).length < 1
         )
           allSOP.push({
+            createdAt: new Date(),
             userId: user?.id,
             detail,
           });
