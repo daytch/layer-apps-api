@@ -38,12 +38,11 @@ export class DiagnosticService {
       where = `where cd."transDate" between '${dayjs().startOf('month').add(1, 'day')}' and '${dayjs().endOf('month')}'`;
     }
     return await this.prisma
-      .$queryRawUnsafe(`select cd."id", c."nik" as coop_id, c."name" as coop_name, u."name" as reporter, cd."transDate" as trans_date, cd."disease",
-    fm."name" as medicine, cd."dose", cd."status" as progres
-    from "CoopDiagnostics" cd 
-    inner join "Coop" c on cd."coopId"=c."id"
-    inner join "UserCoop" uc on c."id"=uc."coopId"
-    inner join "Users" u on u."id"=uc."userId"
+      .$queryRawUnsafe(`select cd."id", cd."coopId", c."nik", c.id as coop_id, c."name" as coop_name, u."name" as reporter, cd."transDate" as trans_date, cd."disease",
+      fm."name" as medicine, cd."dose", cd."status" as progres
+      from "CoopDiagnostics" cd 
+      inner join "Coop" c on cd."coopId"=c."id"
+      inner join "Users" u on u."id"=cd."reporterId"
     left join "FeedsMedicines" fm on cd."medicineId"=fm."id" ${where}`);
   }
 

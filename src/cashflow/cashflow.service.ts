@@ -32,6 +32,11 @@ export class CashflowService {
   }
   async create(createCashflowDto: CreateCashflowDto, req: IPayload) {
     try {
+      if (
+        ['debit', 'kredit'].indexOf(createCashflowDto.tipe.toLowerCase()) < 0
+      ) {
+        return 'please use credit / debit to fill type transaction.';
+      }
       const { total_debit, total_credit } = await this.getTotalDebitCredit();
       const total =
         createCashflowDto.tipe === 'debit'
@@ -73,11 +78,21 @@ export class CashflowService {
     return this.prisma.cashflow.findUnique({ where: { id } });
   }
 
-  update(id: number, updateCashflowDto: UpdateCashflowDto) {
-    return this.prisma.cashflow.update({
+  async update(id: number, updateCashflowDto: UpdateCashflowDto) {
+    await this.prisma.cashflow.update({
       where: { id },
       data: updateCashflowDto,
     });
+
+    return await this.prisma.$executeRaw`with cte_sum as (
+      select id,
+      sum(case when LOWER(tipe) = 'debit' then nominal else 0 end) over(order by id) - sum(case when LOWER(tipe) = 'kredit' then nominal else 0 end) over(order by id)  as balance 
+      from "Cashflow" c 
+      group by id order by id asc
+      )
+      update "Cashflow" set total = cte_sum.balance, tipe = LOWER(tipe)
+      from cte_sum
+      where cte_sum.id = "Cashflow".id `;
   }
 
   async remove(id: number) {
