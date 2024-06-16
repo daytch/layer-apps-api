@@ -23,9 +23,11 @@ export class CashflowService {
       },
     });
     const total_debit =
-      result.filter((x) => x.tipe === 'debit')[0]?._sum?.nominal || 0;
+      result.filter((x) => x.tipe.toLowerCase() === 'debit')[0]?._sum
+        ?.nominal || 0;
     const total_credit =
-      result.filter((x) => x.tipe === 'kredit')[0]?._sum?.nominal || 0;
+      result.filter((x) => x.tipe.toLowerCase() === 'kredit')[0]?._sum
+        ?.nominal || 0;
     return { total_debit, total_credit };
   }
   async create(createCashflowDto: CreateCashflowDto, req: IPayload) {
