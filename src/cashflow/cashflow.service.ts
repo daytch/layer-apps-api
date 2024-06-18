@@ -16,6 +16,16 @@ export class CashflowService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getTotalDebitCredit() {
+    await this.prisma.$executeRaw`with cte_sum as (
+      select id,
+      sum(case when LOWER(tipe) = 'debit' then nominal else 0 end) over(order by id) - sum(case when LOWER(tipe) = 'kredit' then nominal else 0 end) over(order by id)  as balance 
+      from "Cashflow" c 
+      group by id order by id asc
+      )
+      update "Cashflow" set total = cte_sum.balance, tipe = LOWER(tipe)
+      from cte_sum
+      where cte_sum.id = "Cashflow".id `;
+
     const result = await this.prisma.cashflow.groupBy({
       by: ['tipe'],
       _sum: {
@@ -39,7 +49,7 @@ export class CashflowService {
       }
       const { total_debit, total_credit } = await this.getTotalDebitCredit();
       const total =
-        createCashflowDto.tipe === 'debit'
+        createCashflowDto.tipe.toLowerCase() === 'debit'
           ? total_debit + createCashflowDto.nominal - total_credit
           : total_debit - (total_credit + createCashflowDto.nominal);
       const data = {

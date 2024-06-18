@@ -19,6 +19,7 @@ import { multerOptions } from 'src/egg/upload';
 import { ResponseUpload } from './dto/ResponseUpload.dto';
 import { ParamGetAllData } from './dto/ParamsGetAllData.dto';
 import { DeleteEggs } from './dto/DeleteEggs.dto';
+import { UpdateEggs } from './dto/UpdateEggs.dto';
 
 @ApiBearerAuth()
 @ApiTags('Egg')
@@ -33,8 +34,11 @@ export class EggController {
     description: 'Eggs Production per day',
     type: FileUploadDto,
   })
-  async uploadedFile(@UploadedFile() file: Express.Multer.File) {
-    return this.eggService.proccess(file);
+  async uploadedFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: FileUploadDto,
+  ) {
+    return this.eggService.proccess(file, body);
   }
 
   @Get('download/:coopId/:date')
@@ -61,5 +65,10 @@ export class EggController {
   @Post('delete')
   async delete(@Body() data: DeleteEggs) {
     return await this.eggService.delete(data);
+  }
+
+  @Post('update')
+  async update(@Body() data: UpdateEggs[]) {
+    return await this.eggService.update(data);
   }
 }

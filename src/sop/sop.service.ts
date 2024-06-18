@@ -54,7 +54,7 @@ export class SopService {
 
   async complete(completeDto: CompleteDto) {
     try {
-      if (completeDto.sopId || completeDto.userId) {
+      if (!completeDto.sopId || !completeDto.userId) {
         return 'SOP Id and User Id is mandatory';
       }
       const progress: { id: number; detail: any }[] = await this.prisma

@@ -10,6 +10,8 @@ import { ResponseUpload } from './dto/ResponseUpload.dto';
 import { AuthService } from 'src/auth/auth.service';
 import { ParamGetAllData } from './dto/ParamsGetAllData.dto';
 import { DeleteEggs } from './dto/DeleteEggs.dto';
+import { FileUploadDto } from './dto/fileUpload.dto';
+import { UpdateEggs } from './dto/UpdateEggs.dto';
 
 export enum EResponseUpload {
   cancel,
@@ -130,20 +132,64 @@ export class EggService {
     });
   }
 
-  async proccess(file: Express.Multer.File) {
+  async update(data: UpdateEggs[]) {
     try {
-      const workBook = new Excel.Workbook();
-      await workBook.xlsx.readFile(file.path);
+      for (let i = 0; i < data.length; i++) {
+        await this.prisma.eggProduction.updateMany({
+          where: { id: data[i].id },
+          data: {
+            pop: data[i].pop,
+            m: data[i].m,
+            afk: data[i].afk,
+            sell: data[i].sell,
+            finalPop: data[i].finalPop,
+            feedType: data[i].feedType,
+            feedWeight: data[i].feedWeight,
+            feedFIT: data[i].feedFIT,
+            prodPieceN: data[i].prodPieceN,
+            prodPieceP: data[i].prodPieceP,
+            prodPieceBS: data[i].prodPieceBS,
+            prodTotalPiece: data[i].prodTotalPiece,
+            prodWeightN: data[i].prodPieceN,
+            prodWeightP: data[i].prodPieceN,
+            prodWeightBS: data[i].prodWeightBS,
+            prodTotalWeight: data[i].prodTotalWeight,
+            HD: data[i].HD,
+            FCR: data[i].FCR,
+            EggWeight: data[i].EggWeight,
+            EggMass: data[i].EggMass,
+            OVK: data[i].OVK,
+          },
+        });
+      }
+      return 'data berhasil di update';
+    } catch (error) {
+      throw error;
+    }
+  }
 
-      const sheet = workBook.getWorksheet('Sheet1');
-      const coopName = sheet.getRow(3).getCell(4).value;
-      const coops = await this.coopService.findOneByName(coopName.toString());
-      if (!coops) {
+  async proccess(file: Express.Multer.File, body: FileUploadDto) {
+    try {
+      if (!body?.coopId) {
+        throw new BadRequestException('Something went wrong', {
+          cause: new Error(),
+          description: 'Id Kandang tidak boleh kosong.',
+        });
+      }
+
+      const coop = await this.prisma.coop.findUnique({
+        where: { id: Number(body.coopId) },
+      });
+      if (!coop) {
         throw new BadRequestException('Something went wrong', {
           cause: new Error(),
           description: 'Anda harus memilih kandang yang valid.',
         });
       }
+      const workBook = new Excel.Workbook();
+      await workBook.xlsx.readFile(file.path);
+
+      const sheet = workBook.getWorksheet('Sheet1');
 
       const listEggs = await this.prisma.eggProduction.findMany();
 
@@ -181,7 +227,7 @@ export class EggService {
           const ovk = sheet.getRow(index).getCell(25).value;
 
           data = {
-            coopId: (await coops).id,
+            coopId: Number(body?.coopId),
             transDate: getValue(tgl, 'date'),
             ageInDay: getValue(day, 'number'),
             ageInWeek: getValue(week, 'number'),
