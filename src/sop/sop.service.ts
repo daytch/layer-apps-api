@@ -11,7 +11,8 @@ import { UsersService } from 'src/users/users.service';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
-dayjs.tz.setDefault('Asia/Jakarta');
+dayjs.tz.setDefault('UTC');
+//dayjs.tz.setDefault('Asia/Jakarta');
 
 @Injectable()
 export class SopService {
@@ -58,7 +59,7 @@ export class SopService {
         return 'SOP Id and User Id is mandatory';
       }
       const progress: { id: number; detail: any }[] = await this.prisma
-        .$queryRaw`select ps."id", ps."detail" from "ProgressSOP" ps where CAST(ps."createdAt" as DATE)=CAST(${dayjs().format('YYYY-MM-DD')} as DATE) and ps."userId"=${completeDto.userId}`;
+        .$queryRaw`select ps."id", ps."detail" from "ProgressSOP" ps where CAST(ps."createdAt" as DATE)=CAST(${dayjs().utc().format('YYYY-MM-DD')} as DATE) and ps."userId"=${completeDto.userId}`;
 
       const detail = progress.length > 0 ? progress[0].detail : '';
       if (detail) {
@@ -100,7 +101,17 @@ export class SopService {
       where: { roleId: user?.roleId },
     });
     const progressSOP = await this.prisma
-      .$queryRaw`select ps."id", ps."detail" from "ProgressSOP" ps where CAST(ps."createdAt" as DATE)=CAST(${dayjs().format('YYYY-MM-DD')} as DATE) and ps."userId"=${user.id}`;
+      .$queryRaw`select ps."id", ps."detail" from "ProgressSOP" ps where (ps."createdAt" AT TIME ZONE 'GMT')::date=CAST(${dayjs().utc().format('YYYY-MM-DD')} as DATE) and ps."userId"=${user.id}`;
+
+    /* await this.prisma.progressSOP.findMany({
+      where: {
+        userId: user.id,
+        createdAt: {
+          gte: new Date(),
+          lt: new Date(dayjs().utc().add(1, 'day').format('YYYY-MM-DD')),
+        },
+      },
+    }); */
     const detail = progressSOP[0]?.detail;
     return SOP.map((item) => {
       return { ...item, status: detail[item.id] };

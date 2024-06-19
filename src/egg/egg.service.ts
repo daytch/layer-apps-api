@@ -132,6 +132,15 @@ export class EggService {
     });
   }
 
+  stringToDate(dateString: string) {
+    const t =
+      typeof dateString === 'number' ? dateString : parseInt(dateString);
+    const date0 = new Date(0);
+    const utcOffset = date0.getTimezoneOffset();
+
+    return new Date(0, 0, t - 1, 0, -utcOffset, 0);
+  }
+
   async update(data: UpdateEggs[]) {
     try {
       for (let i = 0; i < data.length; i++) {
@@ -200,7 +209,9 @@ export class EggService {
       let code = '';
       for (let index = 10; index < 500; index++) {
         let data = <IEgg>{};
-        const tgl = sheet.getRow(index).getCell(2).value;
+        const tValue = sheet.getRow(index).getCell(2).value;
+
+        const tgl = this.stringToDate(tValue.toString());
         if (tgl) {
           const day = sheet.getRow(index).getCell(3).value;
           const week = sheet.getRow(index).getCell(4).value;
