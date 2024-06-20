@@ -211,7 +211,13 @@ export class EggService {
         let data = <IEgg>{};
         const tValue = sheet.getRow(index).getCell(2).value;
 
-        const tgl = this.stringToDate(tValue.toString());
+        const tgl =
+          typeof tValue === 'object' && 'result' in tValue
+            ? tValue.result instanceof Date
+              ? tValue.result
+              : this.stringToDate(tValue.result.toString())
+            : tValue;
+
         if (tgl) {
           const day = sheet.getRow(index).getCell(3).value;
           const week = sheet.getRow(index).getCell(4).value;
