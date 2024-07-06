@@ -21,8 +21,8 @@ import { ConfigModule } from '@nestjs/config';
 import { DiagnosticModule } from './diagnostic/diagnostic.module';
 import { FeedsmedicinesModule } from './feedsmedicines/feedsmedicines.module';
 import { EggModule } from './egg/egg.module';
-import { NotifModule } from './notif/notif.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { NotificationModule } from './notification/notification.module';
 import configuration from './configs/configuration';
 
 @Module({
@@ -48,8 +48,8 @@ import configuration from './configs/configuration';
     DiagnosticModule,
     FeedsmedicinesModule,
     EggModule,
-    NotifModule,
     DashboardModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [

@@ -72,6 +72,7 @@ model Users {
   FeedsMedicines  FeedsMedicines[]
   UserCoop        UserCoop[]
   Cashflows       Cashflow[]
+  Notification    Notification[]
 }
 
 model Coop {
@@ -89,7 +90,7 @@ model Coop {
 
 model Cashflow {
   id         Int      @id @default(autoincrement())
-  periode    DateTime @db.Date 
+  periode    DateTime @db.Date
   user       Users    @relation(fields: [userId], references: [id])
   userId     Int
   trans_date DateTime @db.Timestamptz(3)
@@ -135,18 +136,19 @@ model FeedsMedicines {
   createdAt             DateTime                @default(now()) @db.Timestamptz(3)
   updateAt              DateTime                @updatedAt @db.Timestamptz(3)
   HistoryFeedsMedicines HistoryFeedsMedicines[]
-  CoopDiagnostics       CoopDiagnostics[]
 }
 
 model HistoryFeedsMedicines {
-  id        Int            @id @default(autoincrement())
-  feed      FeedsMedicines @relation(fields: [feedId], references: [id])
-  feedId    Int
-  quantity  Int
-  tipe      String
-  transDate DateTime
-  createdAt DateTime       @default(now()) @db.Timestamptz(3)
-  updateAt  DateTime       @updatedAt @db.Timestamptz(3)
+  id                Int             @id @default(autoincrement())
+  feed              FeedsMedicines  @relation(fields: [feedId], references: [id])
+  feedId            Int
+  coopDiagnostics   CoopDiagnostics @relation(fields: [coopDiagnosticsId], references: [id])
+  coopDiagnosticsId Int
+  quantity          Int
+  tipe              String
+  transDate         DateTime
+  createdAt         DateTime        @default(now()) @db.Timestamptz(3)
+  updateAt          DateTime        @updatedAt @db.Timestamptz(3)
 }
 
 model EggProduction {
@@ -212,20 +214,31 @@ model EggProductionTemp {
   OVK             Decimal?
   createdAt       DateTime @default(now()) @db.Timestamptz(3)
   updateAt        DateTime @updatedAt @db.Timestamptz(3)
-} 
+}
 
 model CoopDiagnostics {
-  id         Int             @id @default(autoincrement())
-  coop       Coop            @relation(fields: [coopId], references: [id])
-  coopId     Int
-  transDate  DateTime @db.Timestamptz(3)
-  disease    String
-  medicine   FeedsMedicines? @relation(fields: [medicineId], references: [id])
-  medicineId Int?
-  dose       Int?
-  status     String?
-  reporter   Users           @relation(fields: [reporterId], references: [id])
-  reporterId Int
-  createdAt  DateTime        @default(now()) @db.Timestamptz(3)
-  updateAt   DateTime        @updatedAt @db.Timestamptz(3)
+  id                    Int                     @id @default(autoincrement())
+  coop                  Coop                    @relation(fields: [coopId], references: [id])
+  coopId                Int
+  transDate             DateTime                @db.Timestamptz(3)
+  disease               String
+  medicineId            Int?
+  dose                  Int?
+  status                String?
+  reporter              Users                   @relation(fields: [reporterId], references: [id])
+  reporterId            Int
+  createdAt             DateTime                @default(now()) @db.Timestamptz(3)
+  updateAt              DateTime                @updatedAt @db.Timestamptz(3)
+  historyFeedsMedicines HistoryFeedsMedicines[]
+}
+
+model Notification {
+  id         Int      @id @default(autoincrement())
+  message    String
+  isRead     Boolean  @default(false)
+  reporter   String
+  listener   Users    @relation(fields: [listenerId], references: [id])
+  listenerId Int
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime @updatedAt @db.Timestamptz(3)
 }

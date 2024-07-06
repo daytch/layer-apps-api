@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateDiagnosticDto } from './dto/create-diagnostic.dto';
 import { UpdateDiagnosticDto } from './dto/update-diagnostic.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -14,13 +14,30 @@ dayjs.tz.setDefault('Asia/Jakarta');
 export class DiagnosticService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(createDiagnosticDto: CreateDiagnosticDto) {
-    return this.prisma.coopDiagnostics.create({
+  async create(createDiagnosticDto: CreateDiagnosticDto) {
+    const result = await this.prisma.coopDiagnostics.create({
       data: {
         ...createDiagnosticDto,
         transDate: dayjs(createDiagnosticDto.transDate).tz('UTC').toDate(),
       },
     });
+    const users = await this.prisma.users.findMany({
+      select: { id: true },
+      where: { role: { name: { in: ['Admin', 'Superadmin'] } } },
+    });
+    const datas = [];
+    users.forEach((id) => {
+      datas.push({
+        message: 'Membuat laporan Diagnosis Kandang',
+        reporter: createDiagnosticDto.reporterId.toString(),
+        isRead: false,
+        listenerId: id.id,
+      });
+    });
+    await this.prisma.notification.createMany({
+      data: datas,
+    });
+    return result;
   }
 
   async findAll(from: string, to: string, userId: number) {
@@ -46,11 +63,74 @@ export class DiagnosticService {
     left join "FeedsMedicines" fm on cd."medicineId"=fm."id" ${where}`);
   }
 
-  update(id: number, updateDiagnosticDto: UpdateDiagnosticDto) {
-    return this.prisma.coopDiagnostics.update({
+  async update(id: number, updateDiagnosticDto: UpdateDiagnosticDto) {
+    const report = await this.prisma.coopDiagnostics.count({ where: { id } });
+    if (report === 0) {
+      throw new BadRequestException('Something went wrong', {
+        cause: new Error(),
+        description: 'Laporan tidak ditemukan.',
+      });
+    }
+    const result = await this.prisma.coopDiagnostics.update({
       where: { id },
-      data: updateDiagnosticDto,
+      data: {
+        medicineId: updateDiagnosticDto.medicineId,
+        dose: updateDiagnosticDto.dose,
+        status: updateDiagnosticDto.status,
+      },
     });
+
+    // history feed and medicine
+    if (updateDiagnosticDto.medicineId) {
+      const medicine = await this.prisma.feedsMedicines.findUnique({
+        where: { id: updateDiagnosticDto.medicineId },
+      });
+      if (!medicine) {
+        throw new BadRequestException('Something went wrong', {
+          cause: new Error(),
+          description: 'Obat tidak terdaftar.',
+        });
+      }
+      if (medicine.quantity < updateDiagnosticDto.dose) {
+        throw new BadRequestException('Something went wrong', {
+          cause: new Error(),
+          description: 'Stok obat tidak mencukupi.',
+        });
+      }
+      // substract total food and medicines
+      await this.prisma.feedsMedicines.update({
+        where: { id: updateDiagnosticDto.medicineId },
+        data: { quantity: { decrement: updateDiagnosticDto.dose } },
+      });
+
+      await this.prisma.historyFeedsMedicines.create({
+        data: {
+          quantity: updateDiagnosticDto.dose,
+          feedId: updateDiagnosticDto.medicineId,
+          tipe: 'medicine',
+          transDate: dayjs().utc().toDate(),
+          coopDiagnosticsId: id,
+        },
+      });
+    }
+
+    const users = await this.prisma.users.findMany({
+      select: { id: true },
+      where: { role: { name: { in: ['Admin', 'Superadmin'] } } },
+    });
+    const datas = [];
+    users.forEach((id) => {
+      datas.push({
+        message: 'Update laporan Diagnosis Kandang',
+        reporter: updateDiagnosticDto.reporter,
+        isRead: false,
+        listenerId: id.id,
+      });
+    });
+    await this.prisma.notification.createMany({
+      data: datas,
+    });
+    return result;
   }
 
   async remove(id: number) {
