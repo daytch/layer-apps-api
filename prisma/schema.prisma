@@ -230,15 +230,18 @@ model CoopDiagnostics {
   createdAt             DateTime                @default(now()) @db.Timestamptz(3)
   updateAt              DateTime                @updatedAt @db.Timestamptz(3)
   historyFeedsMedicines HistoryFeedsMedicines[]
+  Notification          Notification[]
 }
 
 model Notification {
-  id         Int      @id @default(autoincrement())
-  message    String
-  isRead     Boolean  @default(false)
-  reporter   String
-  listener   Users    @relation(fields: [listenerId], references: [id])
-  listenerId Int
-  createdAt  DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt  DateTime @updatedAt @db.Timestamptz(3)
+  id           Int             @id @default(autoincrement())
+  message      String
+  isRead       Boolean         @default(false)
+  reporter     String
+  listener     Users           @relation(fields: [listenerId], references: [id])
+  listenerId   Int
+  diagnostic   CoopDiagnostics @relation(fields: [diagnosticId], references: [id])
+  diagnosticId Int
+  createdAt    DateTime        @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime        @updatedAt @db.Timestamptz(3)
 }

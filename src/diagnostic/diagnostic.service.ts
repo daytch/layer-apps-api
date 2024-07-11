@@ -21,6 +21,10 @@ export class DiagnosticService {
         transDate: dayjs(createDiagnosticDto.transDate).tz('UTC').toDate(),
       },
     });
+    const pic = await this.prisma.users.findUnique({
+      select: { name: true },
+      where: { id: createDiagnosticDto.reporterId },
+    });
     const users = await this.prisma.users.findMany({
       select: { id: true },
       where: { role: { name: { in: ['Admin', 'Superadmin'] } } },
@@ -29,9 +33,10 @@ export class DiagnosticService {
     users.forEach((id) => {
       datas.push({
         message: 'Membuat laporan Diagnosis Kandang',
-        reporter: createDiagnosticDto.reporterId.toString(),
+        reporter: pic?.name,
         isRead: false,
         listenerId: id.id,
+        diagnosticId: result.id,
       });
     });
     await this.prisma.notification.createMany({
