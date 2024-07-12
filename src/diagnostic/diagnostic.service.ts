@@ -5,6 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import * as dayjs from 'dayjs';
 import * as utc from 'dayjs/plugin/utc';
 import * as timezone from 'dayjs/plugin/timezone';
+import { IPayload } from 'src/auth/auth.service';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -68,7 +69,11 @@ export class DiagnosticService {
     left join "FeedsMedicines" fm on cd."medicineId"=fm."id" ${where}`);
   }
 
-  async update(id: number, updateDiagnosticDto: UpdateDiagnosticDto) {
+  async update(
+    id: number,
+    updateDiagnosticDto: UpdateDiagnosticDto,
+    payload: IPayload,
+  ) {
     const report = await this.prisma.coopDiagnostics.count({ where: { id } });
     if (report === 0) {
       throw new BadRequestException('Something went wrong', {
@@ -119,17 +124,22 @@ export class DiagnosticService {
       });
     }
 
+    const pic = await this.prisma.users.findUnique({
+      select: { name: true },
+      where: { id: payload.uid },
+    });
     const users = await this.prisma.users.findMany({
       select: { id: true },
       where: { role: { name: { in: ['Admin', 'Superadmin'] } } },
     });
     const datas = [];
-    users.forEach((id) => {
+    users.forEach((x) => {
       datas.push({
         message: 'Update laporan Diagnosis Kandang',
-        reporter: updateDiagnosticDto.reporter,
+        reporter: pic.name,
         isRead: false,
-        listenerId: id.id,
+        listenerId: x.id,
+        diagnosticId: id,
       });
     });
     await this.prisma.notification.createMany({

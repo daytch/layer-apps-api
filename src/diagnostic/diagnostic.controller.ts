@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  Request,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { DiagnosticService } from './diagnostic.service';
@@ -40,8 +41,9 @@ export class DiagnosticController {
   update(
     @Param('id') id: string,
     @Body() updateDiagnosticDto: UpdateDiagnosticDto,
+    @Request() req,
   ) {
-    return this.diagnosticService.update(+id, updateDiagnosticDto);
+    return this.diagnosticService.update(+id, updateDiagnosticDto, req.user);
   }
 
   @Delete(':id')
