@@ -28,7 +28,7 @@ export class DiagnosticService {
     });
     const users = await this.prisma.users.findMany({
       select: { id: true },
-      where: { role: { name: { in: ['Admin', 'Superadmin'] } } },
+      where: { role: { name: { in: ['Admin', 'Superadmin', 'Mandor'] } } },
     });
     const datas = [];
     users.forEach((id) => {
@@ -130,7 +130,7 @@ export class DiagnosticService {
     });
     const users = await this.prisma.users.findMany({
       select: { id: true },
-      where: { role: { name: { in: ['Admin', 'Superadmin'] } } },
+      where: { role: { name: { in: ['Admin', 'Superadmin', 'Mandor'] } } },
     });
     const datas = [];
     users.forEach((x) => {
