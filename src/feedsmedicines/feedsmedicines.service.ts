@@ -112,7 +112,8 @@ export class FeedsmedicinesService {
                   fm."name" as medicine,
                   'KREDIT' as tipe, 
                   cd.dose as qty, 
-                  cd.dose * fm.price as total
+                  cd.dose * fm.price as total,
+                  cd."coopId"
                 from "HistoryFeedsMedicines" hfm
                   join "CoopDiagnostics" cd on hfm."coopDiagnosticsId" = cd.id 
                   join "Coop" c on cd."coopId" = c.id 
