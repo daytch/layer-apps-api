@@ -122,7 +122,7 @@ export class FeedsmedicinesService {
                 where (cd."transDate" AT TIME ZONE 'GMT')::date>=CAST(${dayjs(start_date).utc().format('YYYY-MM-DD')} as DATE) 
                 and (cd."transDate" AT TIME ZONE 'GMT')::date<=CAST(${dayjs(end_date).utc().format('YYYY-MM-DD')} as DATE) 
                 and cd."coopId" = ${parseInt(coop_id.toString())} 
-                group by fm."SKU",cd."transDate", c.nik, u."name", fm."name", cd.dose, fm.price`;
+                group by fm."SKU",cd."transDate", c.nik, u."name", fm."name", cd.dose, fm.price, cd."coopId"`;
     return feed;
   }
 }
