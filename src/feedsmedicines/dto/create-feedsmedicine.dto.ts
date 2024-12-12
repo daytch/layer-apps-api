@@ -4,34 +4,34 @@ import { ApiProperty } from '@nestjs/swagger';
 export class CreateFeedsmedicineDto {
   @ApiProperty()
   @IsString()
-  name: string;
+  name?: string;
 
   @ApiProperty()
   @IsString()
-  SKU: string;
+  SKU?: string;
 
   @ApiProperty()
   @IsNumber()
-  coopId: number;
+  coopId?: number;
 
   @ApiProperty()
   @IsNumber()
-  userId: number;
+  userId?: number;
 
   @ApiProperty()
   @IsNumber()
-  quantity: number;
+  quantity?: number;
 
   @ApiProperty()
   @IsNumber()
-  price: number;
+  price?: number;
 
   @ApiProperty()
   @IsNumber()
-  total: number;
+  total?: number;
 
   @ApiProperty()
   @IsString()
   @IsOptional()
-  uom: string;
+  uom?: string;
 }

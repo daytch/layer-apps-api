@@ -7,7 +7,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get<ConfigService>(ConfigService);
   const port = configService.get('PORT');
-
+  console.log('port: ', port);
   // Use DocumentBuilder to create a new Swagger document configuration
   const config = new DocumentBuilder()
     .addBearerAuth()

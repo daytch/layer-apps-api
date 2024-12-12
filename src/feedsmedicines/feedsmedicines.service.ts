@@ -8,18 +8,35 @@ import * as dayjs from 'dayjs';
 export class FeedsmedicinesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(dto: CreateFeedsmedicineDto) {
-    const dt = {
-      SKU: dto.SKU,
-      coopId: dto.coopId,
-      name: dto.name,
-      userId: dto.userId,
-      quantity: dto.quantity,
-      uom: dto.uom,
-      price: dto.price,
-      total: dto.total,
-    };
-    return this.prisma.feedsMedicines.create({ data: dt });
+  async create(dto: CreateFeedsmedicineDto) {
+    try {
+      const existingData = await this.prisma.feedsMedicines.findUnique({
+        where: { SKU: dto.SKU },
+      });
+      if (existingData) {
+        throw new Error(
+          'SKU sudah ada pada kami, jika ingin update silahkan masuk ke menu update',
+        );
+      } else {
+        const dt = {
+          SKU: dto.SKU,
+          coopId: dto.coopId,
+          name: dto.name,
+          userId: dto.userId,
+          quantity: Number(dto.quantity),
+          uom: dto.uom,
+          price: Number(dto.price),
+          total: Number(dto.total),
+        };
+        return await this.prisma.feedsMedicines.create({ data: dt });
+      }
+    } catch (error) {
+      return error?.message
+        ? error.message
+        : error?.stack
+          ? error.stack
+          : error;
+    }
   }
 
   async findAll() {
@@ -88,10 +105,18 @@ export class FeedsmedicinesService {
   }
 
   update(id: number, dto: UpdateFeedsmedicineDto) {
-    return this.prisma.coop.update({
-      where: { id },
-      data: dto,
-    });
+    try {
+      return this.prisma.feedsMedicines.update({
+        where: { id },
+        data: dto,
+      });
+    } catch (error) {
+      return error?.message
+        ? error.message
+        : error?.stack
+          ? error.stack
+          : error;
+    }
   }
 
   async remove(id: number) {

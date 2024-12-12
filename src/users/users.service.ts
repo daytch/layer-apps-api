@@ -232,20 +232,20 @@ export class UsersService {
       const lastId = await this.prisma
         .$queryRaw<number>`SELECT id FROM "Users" order by id desc limit 1`;
       const user = await this.prisma.users.findMany({
-        where: {
-          OR: [
-            { email: createUsersDto.email },
-            { phone: createUsersDto.phone },
-          ],
-        },
+        where: { email: createUsersDto.email },
       });
       if (user.length > 0) {
-        throw new Error('Email / Nomor HP sudah terdaftar');
+        throw new Error('Email sudah terdaftar');
       }
+      const nik = this.generateNIK(lastId[0].id);
+      const password = await bcrypt.hash(
+        createUsersDto.password ? createUsersDto.password : nik,
+        saltOrRounds,
+      );
 
       const dt = {
-        nik: this.generateNIK(lastId[0].id),
-        password: await bcrypt.hash(createUsersDto.password, saltOrRounds),
+        nik,
+        password,
         name: createUsersDto.name,
         role: { connect: { id: createUsersDto.roleId } },
         email: createUsersDto.email,
@@ -269,7 +269,11 @@ export class UsersService {
         data: dt,
       });
     } catch (error) {
-      throw error;
+      return error?.message
+        ? error.message
+        : error?.stack
+          ? error.stack
+          : error;
     }
   }
 
@@ -316,7 +320,11 @@ export class UsersService {
         });
       }
     } catch (error) {
-      throw error;
+      return error?.message
+        ? error.message
+        : error?.stack
+          ? error.stack
+          : error;
     }
   }
 
@@ -327,7 +335,11 @@ export class UsersService {
         data: { is_active: false },
       });
     } catch (error) {
-      throw error;
+      return error?.message
+        ? error.message
+        : error?.stack
+          ? error.stack
+          : error;
     }
   }
 }

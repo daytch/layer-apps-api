@@ -20,8 +20,8 @@ export class FeedsmedicinesController {
   constructor(private readonly feedsmedicinesService: FeedsmedicinesService) {}
 
   @Post()
-  create(@Body() createFeedsmedicineDto: CreateFeedsmedicineDto) {
-    return this.feedsmedicinesService.create(createFeedsmedicineDto);
+  async create(@Body() createFeedsmedicineDto: CreateFeedsmedicineDto) {
+    return await this.feedsmedicinesService.create(createFeedsmedicineDto);
   }
 
   @Get()
