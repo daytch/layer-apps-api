@@ -265,9 +265,6 @@ export class UsersService {
         });
         await this.prisma.userCoop.createMany({ data: data });
       }
-      return this.prisma.users.create({
-        data: dt,
-      });
     } catch (error) {
       return error?.message
         ? error.message
