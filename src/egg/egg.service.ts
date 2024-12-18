@@ -198,7 +198,15 @@ export class EggService {
       const workBook = new Excel.Workbook();
       await workBook.xlsx.readFile(file.path);
 
-      const sheet = workBook.getWorksheet('Sheet1');
+      let sheet = workBook.getWorksheet('Sheet1');
+      sheet = sheet ? sheet : workBook.getWorksheet('RECORDING PRODUKSI');
+      if (!sheet) {
+        throw new BadRequestException('Something went wrong', {
+          cause: new Error(),
+          description:
+            'Nama sheet tidak valid (Sheet 1 atau RECORDING PRODUKSI).',
+        });
+      }
 
       const listEggs = await this.prisma.eggProduction.findMany();
 
@@ -210,13 +218,23 @@ export class EggService {
       for (let index = 10; index < 500; index++) {
         let data = <IEgg>{};
         const tValue = sheet.getRow(index).getCell(2).value;
-
-        const tgl =
-          typeof tValue === 'object' && 'result' in tValue
-            ? tValue.result instanceof Date
-              ? tValue.result
-              : this.stringToDate(tValue.result.toString())
-            : tValue;
+        if (!tValue) {
+          break;
+        }
+        let tgl = null;
+        try {
+          tgl =
+            typeof tValue === 'object' && 'result' in tValue
+              ? tValue.result instanceof Date
+                ? tValue.result
+                : this.stringToDate(tValue.result.toString())
+              : tValue;
+        } catch (err) {
+          throw new BadRequestException('Something went wrong', {
+            cause: new Error(),
+            description: `Tanggal pada row ke ${index + 1} dengan isi ${tValue} tidak valid, harap cek kembali data anda.`,
+          });
+        }
 
         if (tgl) {
           const day = sheet.getRow(index).getCell(3).value;
