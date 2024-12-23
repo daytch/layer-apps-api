@@ -247,7 +247,7 @@ export class CashflowService {
             break;
           }
         }
-        await this.prisma.report.createMany({ data: listReport });
+        return await this.prisma.report.createMany({ data: listReport });
       });
 
       if (!sheet) {

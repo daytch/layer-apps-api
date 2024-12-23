@@ -28,7 +28,7 @@ export class TransformInterceptor<T>
         map((data) => {
           if (data?.stream) {
             return data;
-          } else {
+          } else if (data) {
             const message = data?.message || '';
             delete data.message;
             return {
