@@ -350,7 +350,6 @@ export class EggService {
 
       const wb = new Excel.Workbook();
       const ws = wb.addWorksheet('Sheet1');
-      const coopSheet = wb.addWorksheet('Kandang');
 
       ws.mergeCells('B2:Y2');
       ws.getCell('B2').value = 'CATATAN HARIAN TELUR';

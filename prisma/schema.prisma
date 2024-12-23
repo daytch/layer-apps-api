@@ -86,6 +86,8 @@ model Coop {
   EggProduction   EggProduction[]
   CoopDiagnostics CoopDiagnostics[]
   UserCoop        UserCoop[]
+  Report          Report[]
+  ReportTemp      ReportTemp[]
 }
 
 model Cashflow {
@@ -244,4 +246,39 @@ model Notification {
   diagnosticId Int
   createdAt    DateTime        @default(now()) @db.Timestamptz(3)
   updatedAt    DateTime        @updatedAt @db.Timestamptz(3)
+}
+
+model Report {
+  id            Int      @id @default(autoincrement())
+  coop          Coop     @relation(fields: [coopId], references: [id])
+  coopId        Int
+  transDate     DateTime @db.Timestamptz(3)
+  jenis         String?
+  qty           Int?
+  indexs        Int?
+  totalIncome   Int?
+  eggNotes      Int?
+  kilo          Int?
+  price         Int?
+  totalExpenses Int?
+  createdAt     DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime @updatedAt @db.Timestamptz(3)
+}
+
+model ReportTemp {
+  id            Int      @id @default(autoincrement())
+  isDuplicate   Boolean
+  coop          Coop     @relation(fields: [coopId], references: [id])
+  coopId        Int
+  transDate     DateTime @db.Timestamptz(3)
+  jenis         String?
+  qty           Int?
+  indexs        Int?
+  totalIncome   Int?
+  eggNotes      Int?
+  kilo          Int?
+  price         Int?
+  totalExpenses Int?
+  createdAt     DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime @updatedAt @db.Timestamptz(3)
 }
