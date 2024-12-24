@@ -51,16 +51,6 @@ export class DashboardService {
   async getAllData() {
     const { total_debit, total_credit } =
       await this.cashflow.getTotalDebitCredit();
-    const users = await this.prisma.users.findMany({
-      select: {
-        id: true,
-        name: true,
-        role: {
-          select: { name: true },
-        },
-      },
-    });
-    debugger;
 
     return { total: total_debit - total_credit, total_debit, total_credit };
   }
