@@ -91,7 +91,7 @@ export class SopService {
     return progress;
   }
 
-  async getSOPByUser(payload: IPayload) {
+  async getSOPByUser(payload: IPayload, coopId: string) {
     const user = await this.usersService.findOneById(payload.uid);
     if (!user) {
       throw new UnauthorizedException();
@@ -101,7 +101,7 @@ export class SopService {
       where: { roleId: user?.roleId },
     });
     const progressSOP = await this.prisma
-      .$queryRaw`select ps."id", ps."detail" from "ProgressSOP" ps where (ps."createdAt" AT TIME ZONE 'GMT')::date=CAST(${dayjs().utc().format('YYYY-MM-DD')} as DATE) and ps."userId"=${user.id}`;
+      .$queryRaw`select ps."id", ps."detail" from "ProgressSOP" ps where (ps."createdAt" AT TIME ZONE 'GMT')::date=CAST(${dayjs().utc().format('YYYY-MM-DD')} as DATE) and ps."userId"=${user.id} and ps."coopId"=${coopId}`;
 
     const detail = progressSOP[0]?.detail;
     return SOP.map((item) => {

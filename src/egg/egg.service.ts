@@ -605,6 +605,7 @@ export class EggService {
           right: { style: 'thin' },
           top: { style: 'thin' },
         },
+        
       };
       ws.mergeCells('E7:E9');
 

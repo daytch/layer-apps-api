@@ -26,7 +26,7 @@ export class FeedsmedicinesService {
           quantity: Number(dto.quantity),
           uom: dto.uom,
           price: Number(dto.price),
-          total: Number(dto.total),
+          total: Number(dto.quantity) * Number(dto.price),
         };
         return await this.prisma.feedsMedicines.create({ data: dt });
       }

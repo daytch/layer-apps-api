@@ -231,11 +231,14 @@ export class UsersService {
     try {
       const lastId = await this.prisma
         .$queryRaw<number>`SELECT id FROM "Users" order by id desc limit 1`;
-      const user = await this.prisma.users.findMany({
-        where: { email: createUsersDto.email },
-      });
-      if (user.length > 0) {
-        throw new Error('Email sudah terdaftar');
+
+      if (createUsersDto.email) {
+        const user = await this.prisma.users.findMany({
+          where: { email: createUsersDto.email },
+        });
+        if (user.length > 0) {
+          throw new Error('Email sudah terdaftar');
+        }
       }
       const nik = this.generateNIK(lastId[0].id);
       const password = await bcrypt.hash(

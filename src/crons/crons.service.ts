@@ -30,7 +30,8 @@ export class CronsService {
     return SOPdetail;
   };
 
-  @Cron(CronExpression.EVERY_DAY_AT_6PM, {
+  @Cron(CronExpression.EVERY_HOUR, {
+    // CronExpression.EVERY_DAY_AT_6PM
     name: 'SOP',
     timeZone: 'UTC',
   })
@@ -50,11 +51,24 @@ export class CronsService {
           Object.keys(detail).length > 0 &&
           progress?.filter((x) => x.userId === user.id).length < 1
         )
-          allSOP.push({
-            createdAt: new Date(),
-            userId: user?.id,
-            detail,
-          });
+          if (user.coops.length > 0) {
+            for (let idx = 0; idx < user.coops.length; idx++) {
+              const element = user.coops[idx];
+              allSOP.push({
+                createdAt: new Date(),
+                coopId: element.coopId,
+                userId: user?.id,
+                detail,
+              });
+            }
+          } else {
+            allSOP.push({
+              createdAt: new Date(),
+              coopId: null,
+              userId: user?.id,
+              detail,
+            });
+          }
       }
       const createMany = await this.prisma.progressSOP.createMany({
         data: allSOP,

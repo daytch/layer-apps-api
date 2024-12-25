@@ -8,6 +8,8 @@ import * as Excel from 'exceljs';
 import * as utc from 'dayjs/plugin/utc';
 import * as timezone from 'dayjs/plugin/timezone';
 import { FileUploadDto } from 'src/egg/dto/fileUpload.dto';
+import { CoopService } from 'src/coop/coop.service';
+import { ReportUploadDto } from './dto/reportUpload.dto';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -65,7 +67,10 @@ function getValue(data: any, tipe: string) {
 
 @Injectable()
 export class CashflowService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly coopService: CoopService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   async getTotalDebitCredit() {
     await this.prisma.$executeRaw`with cte_sum as (
@@ -178,12 +183,19 @@ export class CashflowService {
     return transDate;
   }
 
-  async proccess(file: Express.Multer.File, body: FileUploadDto) {
+  async proccess(file: Express.Multer.File, body: ReportUploadDto) {
     try {
       if (!body?.coopId) {
         throw new BadRequestException('Something went wrong', {
           cause: new Error(),
           description: 'Id Kandang tidak boleh kosong.',
+        });
+      }
+
+      if (!body?.period) {
+        throw new BadRequestException('Something went wrong', {
+          cause: new Error(),
+          description: 'Periode harus dipilih.',
         });
       }
 
@@ -203,17 +215,18 @@ export class CashflowService {
       const sheetNames = workBook.worksheets.map((s) => s.name);
       sheetNames.forEach(async (element) => {
         sheet = workBook.getWorksheet(element);
-        const month = element.toLowerCase().match(monthRegex);
+        // baca period dari nama sheet
+        // const month = element.toLowerCase().match(monthRegex);
 
-        if (month) {
-          console.log(month[0]); // Output: January
-        } else {
-          console.log('No month found');
-          throw new BadRequestException('Something went wrong', {
-            cause: new Error(),
-            description: 'Nama sheet tidak mengandung nama bulan.',
-          });
-        }
+        // if (month) {
+        //   console.log(month[0]); // Output: January
+        // } else {
+        //   console.log('No month found');
+        //   throw new BadRequestException('Something went wrong', {
+        //     cause: new Error(),
+        //     description: 'Nama sheet tidak mengandung nama bulan.',
+        //   });
+        // }
 
         const listReport = [];
         for (let index = 6; index < 500; index++) {
@@ -224,15 +237,15 @@ export class CashflowService {
             const jenis = sheet.getRow(index).getCell(2).value;
             const qty = sheet.getRow(index).getCell(3).value;
             const idx = sheet.getRow(index).getCell(4).value;
-            const jumlah_pemasukan = sheet.getRow(index).getCell(5).value;
+            const jumlah_pemasukan = sheet.getRow(index).getCell(9).value;
             const nota = sheet.getRow(index).getCell(6).value;
             const kg = sheet.getRow(index).getCell(7).value;
             const harga = sheet.getRow(index).getCell(8).value;
-            const jumlan_pengeluaran = sheet.getRow(index).getCell(9).value;
+            const jumlan_pengeluaran = sheet.getRow(index).getCell(5).value;
 
             data = {
               coopId: Number(body?.coopId),
-              transDate: new Date(this.getTransDate(month[0])),
+              transDate: new Date(body.period), // new Date(this.getTransDate(month[0])),
               jenis: jenis.toString(),
               qty: getValue(qty, 'number'),
               indexs: getValue(idx, 'number'),
@@ -249,14 +262,6 @@ export class CashflowService {
         }
         return await this.prisma.report.createMany({ data: listReport });
       });
-
-      if (!sheet) {
-        throw new BadRequestException('Something went wrong', {
-          cause: new Error(),
-          description:
-            'Nama sheet tidak valid (Sheet 1 atau RECORDING PRODUKSI).',
-        });
-      }
     } catch (error) {
       console.log('error: ', error);
       throw error;
@@ -274,5 +279,252 @@ export class CashflowService {
         date.getFullYear() === paramDate.getFullYear()
       );
     });
+  }
+
+  getFirstLastDate(period: Date) {
+    const firstDay = new Date(period.getFullYear(), period.getMonth(), 1); // First day of the month
+    const lastDay = new Date(
+      period.getFullYear(),
+      period.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999,
+    ); // Last day of the month
+
+    return { firstDay, lastDay };
+  }
+
+  getStyledPropsHeader(): Partial<Excel.Style> {
+    return {
+      fill: {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'A0CD63' },
+      },
+      font: { bold: true },
+      alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+      border: {
+        bottom: { style: 'thin' },
+        left: { style: 'thin' },
+        right: { style: 'thin' },
+        top: { style: 'thin' },
+      },
+    };
+  }
+
+  getHeader(ws: Excel.Worksheet): Excel.Worksheet {
+    const styled = this.getStyledPropsHeader();
+    ws.mergeCells('A2:J2');
+    ws.getCell('A2').value = 'FORMAT LAPORAN PENDAPATAN';
+    ws.getCell('A2').alignment = { horizontal: 'center' };
+    ws.getCell('A2').font = { bold: true };
+
+    ws.mergeCells('A4:A5');
+    ws.getCell('A4').value = 'NO';
+    ws.getCell('A4').style = styled;
+
+    ws.mergeCells('B4:E4');
+    ws.getCell('B4').value = 'PENGELUARAN';
+    ws.getCell('B4').style = styled;
+
+    ws.mergeCells('F4:I4');
+    ws.getCell('F4').value = 'PEMASUKAN';
+    ws.getCell('F4').style = styled;
+
+    ws.mergeCells('J4:J5');
+    ws.getCell('J4').value = 'PENDAPATAN BERSIH';
+    ws.getCell('J4').style = styled;
+
+    ws.getCell('B5').value = 'JENIS';
+    ws.getCell('B5').style = styled;
+    ws.getCell('C5').value = 'QTY';
+    ws.getCell('C5').style = styled;
+    ws.getCell('D5').value = 'INDEKS';
+    ws.getCell('D5').style = styled;
+    ws.getCell('E5').value = 'JUMLAH';
+    ws.getCell('E5').style = styled;
+    ws.getCell('F5').value = 'NOTA TELUR (PETI)';
+    ws.getCell('F5').style = styled;
+    ws.getCell('G5').value = 'KILO';
+    ws.getCell('G5').style = styled;
+    ws.getCell('H5').value = 'HARGA';
+    ws.getCell('H5').style = styled;
+    ws.getCell('I5').value = 'JUMLAH';
+    ws.getCell('I5').style = styled;
+    return ws;
+  }
+
+  async getContent(ws: Excel.Worksheet, period: string, coopId: number) {
+    const { firstDay, lastDay } = this.getFirstLastDate(new Date(period));
+    const reports = await this.prisma.report.findMany({
+      where: {
+        coopId: Number(coopId),
+        transDate: { lte: lastDay, gte: firstDay },
+      },
+      orderBy: { id: 'asc' },
+    });
+
+    ws.columns = [
+      {
+        key: 'no',
+        alignment: { horizontal: 'center', vertical: 'middle' },
+        width: 5,
+      },
+      { key: 'jenis', alignment: { horizontal: 'left' }, width: 27 },
+      { key: 'qty', alignment: { horizontal: 'center' }, width: 4.86 },
+      { key: 'indexs', alignment: { horizontal: 'right' }, width: 11.6 },
+      {
+        key: 'totalExpenses',
+        alignment: { horizontal: 'right' },
+        width: 11.6,
+      },
+      { key: 'eggNotes', alignment: { horizontal: 'center' }, width: 11.3 },
+      { key: 'kilo', alignment: { horizontal: 'center' }, width: 5 },
+      { key: 'price', alignment: { horizontal: 'right' }, width: 11.6 },
+      { key: 'totalIncome', alignment: { horizontal: 'right' }, width: 11.6 },
+      {
+        key: 'pendapatanBersih',
+        alignment: { horizontal: 'right' },
+        width: 13,
+      },
+    ];
+    let idx = 6;
+    reports.forEach((item, index) => {
+      ws.addRow({
+        no: index + 1,
+        jenis: item.jenis ?? '',
+        qty: item.qty ?? '',
+        indexs: item.indexs ?? '',
+        totalIncome:
+          item.kilo && item.coopId
+            ? { formula: `G${idx}*H${idx}`, value: item.totalIncome ?? '' }
+            : (item.totalIncome ?? ''),
+        eggNotes: item.eggNotes ?? '',
+        kilo: item.kilo ?? '',
+        price: item.price ?? '',
+        _totalExpenses:
+          item.qty && item.indexs
+            ? {
+                formula: `C${idx}*D${idx}`,
+                value: item.totalExpenses ?? '',
+              }
+            : (item.totalExpenses ?? ''),
+        get totalExpenses() {
+          return this._totalExpenses;
+        },
+        set totalExpenses(value) {
+          this._totalExpenses = value;
+        },
+        pendapatanBersih:
+          item.jenis.toLowerCase() === 'total'
+            ? item.totalIncome - item.totalExpenses
+            : '',
+      });
+      ws.getCell(`A${idx}`).style = {
+        alignment: { horizontal: 'center', vertical: 'middle' },
+        border: {
+          top: { style: 'thin' },
+          right: { style: 'thin' },
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+        },
+      };
+      ws.getCell(`B${idx}`).border = {
+        top: { style: 'thin' },
+        right: { style: 'thin' },
+        bottom: { style: 'thin' },
+        left: { style: 'thin' },
+      };
+      ws.getCell(`C${idx}`).style = {
+        alignment: { horizontal: 'center', vertical: 'middle' },
+        border: {
+          top: { style: 'thin' },
+          right: { style: 'thin' },
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+        },
+      };
+      ws.getCell(`D${idx}`).border = {
+        top: { style: 'thin' },
+        right: { style: 'thin' },
+        bottom: { style: 'thin' },
+        left: { style: 'thin' },
+      };
+      ws.getCell(`E${idx}`).border = {
+        top: { style: 'thin' },
+        right: { style: 'thin' },
+        bottom: { style: 'thin' },
+        left: { style: 'thin' },
+      };
+      ws.getCell(`F${idx}`).style = {
+        alignment: { horizontal: 'center', vertical: 'middle' },
+        border: {
+          top: { style: 'thin' },
+          right: { style: 'thin' },
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+        },
+      };
+      ws.getCell(`G${idx}`).border = {
+        top: { style: 'thin' },
+        right: { style: 'thin' },
+        bottom: { style: 'thin' },
+        left: { style: 'thin' },
+      };
+      ws.getCell(`H${idx}`).border = {
+        top: { style: 'thin' },
+        right: { style: 'thin' },
+        bottom: { style: 'thin' },
+        left: { style: 'thin' },
+      };
+      ws.getCell(`I${idx}`).border = {
+        top: { style: 'thin' },
+        right: { style: 'thin' },
+        bottom: { style: 'thin' },
+        left: { style: 'thin' },
+      };
+      ws.getCell(`J${idx}`).border = {
+        top: { style: 'thin' },
+        right: { style: 'thin' },
+        bottom: { style: 'thin' },
+        left: { style: 'thin' },
+      };
+      if (item.indexs) {
+        ws.getCell(`D${idx}`).numFmt = '* #,##0';
+      }
+      if (item.totalExpenses) {
+        ws.getCell(`E${idx}`).numFmt = '* #,##0';
+      }
+      if (item.price) {
+        ws.getCell(`H${idx}`).numFmt = '* #,##0';
+      }
+      if (item.totalIncome) {
+        ws.getCell(`I${idx}`).numFmt = '* #,##0';
+      }
+      if (item.totalExpenses > 0 || item.totalIncome > 0) {
+        ws.getCell(`J${idx}`).numFmt = '* #,##0';
+      }
+      idx++;
+    });
+  }
+
+  async download(coopId: number, period: string): Promise<any> {
+    try {
+      const coop = await this.coopService.findOne(Number(coopId));
+      const sheetName = dayjs(period).tz('Asia/Jakarta').format('MMMM-YYYY');
+      const wb = new Excel.Workbook();
+      let ws = wb.addWorksheet(sheetName);
+
+      ws = this.getHeader(ws);
+      await this.getContent(ws, period, coopId);
+
+      const buffer = await wb.xlsx.writeBuffer();
+      const title = `Laporan Pendapatan ${coop.name} - ${sheetName}.xlsx`;
+      return { buffer, title };
+    } catch (error) {
+      throw error;
+    }
   }
 }

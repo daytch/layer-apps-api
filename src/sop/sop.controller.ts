@@ -67,9 +67,9 @@ export class SopController {
     return this.sopService.getProgressAllEmployee(roleId, date);
   }
 
-  @Get('/getsopbyuser')
-  async getSOPByUser(@Request() req) {
-    return await this.sopService.getSOPByUser(req.user);
+  @Get('/getsopbyuser/:coopId')
+  async getSOPByUser(@Request() req, @Param('coopId') coopId: string) {
+    return await this.sopService.getSOPByUser(req.user, coopId);
   }
 
   @Post('/run-scheduler')

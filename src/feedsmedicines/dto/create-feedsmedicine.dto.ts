@@ -27,10 +27,6 @@ export class CreateFeedsmedicineDto {
   price?: number;
 
   @ApiProperty()
-  @IsNumber()
-  total?: number;
-
-  @ApiProperty()
   @IsString()
   @IsOptional()
   uom?: string;
