@@ -55,11 +55,11 @@ export class SopService {
 
   async complete(completeDto: CompleteDto) {
     try {
-      if (!completeDto.sopId || !completeDto.userId) {
-        return 'SOP Id and User Id is mandatory';
+      if (!completeDto.sopId || !completeDto.userId || !completeDto.coopId) {
+        return 'SOP Id, User Id dan Id Kandang wajib diisi.';
       }
       const progress: { id: number; detail: any }[] = await this.prisma
-        .$queryRaw`select ps."id", ps."detail" from "ProgressSOP" ps where (ps."createdAt" AT TIME ZONE 'GMT')::date=CAST(${dayjs().utc().format('YYYY-MM-DD')} as DATE) and ps."userId"=${completeDto.userId}`;
+        .$queryRaw`select ps."id", ps."detail" from "ProgressSOP" ps where (ps."createdAt" AT TIME ZONE 'GMT')::date=CAST(${dayjs().utc().format('YYYY-MM-DD')} as DATE) and ps."userId"=${completeDto.userId} and ps.coopId=${Number(completeDto.coopId)}`;
 
       const detail = progress.length > 0 ? progress[0].detail : '';
       if (detail) {
@@ -92,20 +92,24 @@ export class SopService {
   }
 
   async getSOPByUser(payload: IPayload, coopId: string) {
-    const user = await this.usersService.findOneById(payload.uid);
-    if (!user) {
-      throw new UnauthorizedException();
+    try {
+      const user = await this.usersService.findOneById(payload.uid);
+      if (!user) {
+        throw new UnauthorizedException();
+      }
+
+      const SOP = await this.prisma.sOP.findMany({
+        where: { roleId: user?.roleId },
+      });
+      const progressSOP = await this.prisma
+        .$queryRaw`select ps."id", ps."detail" from "ProgressSOP" ps where (ps."createdAt" AT TIME ZONE 'GMT')::date=CAST(${dayjs().utc().format('YYYY-MM-DD')} as DATE) and ps."userId"=${user.id} and ps."coopId"=${Number(coopId)}`;
+
+      const detail = progressSOP[0]?.detail;
+      return SOP.map((item) => {
+        return { ...item, status: detail[item.id] };
+      });
+    } catch (error) {
+      return [];
     }
-
-    const SOP = await this.prisma.sOP.findMany({
-      where: { roleId: user?.roleId },
-    });
-    const progressSOP = await this.prisma
-      .$queryRaw`select ps."id", ps."detail" from "ProgressSOP" ps where (ps."createdAt" AT TIME ZONE 'GMT')::date=CAST(${dayjs().utc().format('YYYY-MM-DD')} as DATE) and ps."userId"=${user.id} and ps."coopId"=${coopId}`;
-
-    const detail = progressSOP[0]?.detail;
-    return SOP.map((item) => {
-      return { ...item, status: detail[item.id] };
-    });
   }
 }

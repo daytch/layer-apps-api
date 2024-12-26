@@ -42,7 +42,7 @@ export class CronsService {
 
       const allSOP = [];
       const progress: { userId: number }[] = await this.prisma
-        .$queryRaw`select ps."userId" from "ProgressSOP" ps where CAST(ps."createdAt" as DATE)=CAST(${dayjs().format('YYYY-MM-DD')} as DATE)`;
+        .$queryRaw`select ps."userId" from "ProgressSOP" ps where (ps."createdAt" AT TIME ZONE 'GMT')::date=CAST(${dayjs().utc().format('YYYY-MM-DD')} as DATE)`;
 
       for (let index = 0; index < users.length; index++) {
         const user = users[index];
