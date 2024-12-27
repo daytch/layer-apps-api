@@ -5,7 +5,7 @@
 /public/images
 /public/docs
 # prisma
-/prisma/migrations
+# /prisma/migrations
 
 # Logs
 logs
