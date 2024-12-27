@@ -105,14 +105,15 @@ model Cashflow {
 }
 
 model SOP {
-  id          Int      @id @default(autoincrement())
-  role        Role     @relation(fields: [roleId], references: [id])
-  roleId      Int
-  title       String
-  time        String
-  description String
-  createdAt   DateTime @default(now()) @db.Timestamptz(3)
-  updateAt    DateTime @updatedAt @db.Timestamptz(3)
+  id            Int      @id @default(autoincrement())
+  role          Role     @relation(fields: [roleId], references: [id])
+  roleId        Int
+  title         String
+  time          String
+  isReduceStock Boolean @default(false)
+  description   String
+  createdAt     DateTime @default(now()) @db.Timestamptz(3)
+  updateAt      DateTime @updatedAt @db.Timestamptz(3)
 }
 
 model ProgressSOP {

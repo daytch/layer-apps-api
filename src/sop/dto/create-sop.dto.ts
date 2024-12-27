@@ -1,4 +1,4 @@
-import { IsString, IsNumber } from 'class-validator';
+import { IsString, IsNumber, IsBoolean } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateSopDto {
@@ -17,4 +17,8 @@ export class CreateSopDto {
   @ApiProperty()
   @IsString()
   time: string;
+  
+  @ApiProperty()
+  @IsBoolean()
+  isReduceStock: boolean;
 }
