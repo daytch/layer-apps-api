@@ -6,7 +6,7 @@ import * as dayjs from 'dayjs';
 
 @Injectable()
 export class FeedsmedicinesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create(dto: CreateFeedsmedicineDto) {
     try {
@@ -27,6 +27,7 @@ export class FeedsmedicinesService {
           uom: dto.uom,
           price: Number(dto.price),
           total: Number(dto.quantity) * Number(dto.price),
+          isEatable: dto.isEatable ?? false,
         };
         return await this.prisma.feedsMedicines.create({ data: dt });
       }
@@ -39,7 +40,7 @@ export class FeedsmedicinesService {
     }
   }
 
-  async findAll() {
+  async findAll(coopId?: number) {
     const feeds = await this.prisma.feedsMedicines.findMany({
       select: {
         coopId: true,
@@ -56,7 +57,7 @@ export class FeedsmedicinesService {
         id: true,
       },
     });
-    return feeds?.map((item) => {
+    let listFeeds = feeds?.map((item) => {
       return {
         id: item.id,
         coopId: item.coopId,
@@ -70,6 +71,10 @@ export class FeedsmedicinesService {
         coop_name: item.coop.name,
       };
     });
+    if (coopId && listFeeds) {
+      return listFeeds.filter(x => x.coopId == Number(coopId));
+    }
+    return listFeeds;
   }
 
   async findOne(id: number) {
@@ -126,28 +131,74 @@ export class FeedsmedicinesService {
   }
 
   async getReport(
-    start_date: Date = new Date(),
-    end_date: Date = new Date(),
-    coop_id: number = 1,
+    start_date?: Date,
+    end_date?: Date,
+    coop_id?: number,
   ) {
-    const feed = await this.prisma.$queryRaw`select  
-                  fm."SKU" as sku, 
-                  u."name" pic, 
-                  (cd."transDate" AT TIME ZONE 'Asia/Jakarta')::date as transaction_date,
-                  fm."name" as medicine,
-                  'KREDIT' as tipe, 
-                  cd.dose as qty, 
-                  cd.dose * fm.price as total,
-                  cd."coopId"
-                from "HistoryFeedsMedicines" hfm
-                  join "CoopDiagnostics" cd on hfm."coopDiagnosticsId" = cd.id 
-                  join "Coop" c on cd."coopId" = c.id 
-                  join "Users" u on cd."reporterId"=u.id 
-                  join "FeedsMedicines" fm on cd."medicineId" = fm.id
-                where (cd."transDate" AT TIME ZONE 'GMT')::date>=CAST(${dayjs(start_date).utc().format('YYYY-MM-DD')} as DATE) 
-                and (cd."transDate" AT TIME ZONE 'GMT')::date<=CAST(${dayjs(end_date).utc().format('YYYY-MM-DD')} as DATE) 
-                and cd."coopId" = ${parseInt(coop_id.toString())} 
-                group by fm."SKU",cd."transDate", c.nik, u."name", fm."name", cd.dose, fm.price, cd."coopId"`;
-    return feed;
+    try {
+      if (!start_date && !end_date && !coop_id) {
+        return await this.prisma.$queryRaw`select  
+                      fm."SKU" as sku, 
+                      u."name" pic, 
+                      (cd."transDate" AT TIME ZONE 'Asia/Jakarta')::date as transaction_date,
+                      fm."name" as medicine,
+                      'KREDIT' as tipe, 
+                      cd.dose as qty, 
+                      cd.dose * fm.price as total,
+                      cd."coopId"
+                    from "HistoryFeedsMedicines" hfm
+                      join "CoopDiagnostics" cd on hfm."coopDiagnosticsId" = cd.id 
+                      join "Coop" c on cd."coopId" = c.id 
+                      join "Users" u on cd."reporterId"=u.id 
+                      join "FeedsMedicines" fm on cd."medicineId" = fm.id
+                    group by fm."SKU",cd."transDate", c.nik, u."name", fm."name", cd.dose, fm.price, cd."coopId"`;
+      }
+      return await this.prisma.$queryRaw`select  
+                    fm."SKU" as sku, 
+                    u."name" pic, 
+                    (cd."transDate" AT TIME ZONE 'Asia/Jakarta')::date as transaction_date,
+                    fm."name" as medicine,
+                    'KREDIT' as tipe, 
+                    cd.dose as qty, 
+                    cd.dose * fm.price as total,
+                    cd."coopId"
+                  from "HistoryFeedsMedicines" hfm
+                    join "CoopDiagnostics" cd on hfm."coopDiagnosticsId" = cd.id 
+                    join "Coop" c on cd."coopId" = c.id 
+                    join "Users" u on cd."reporterId"=u.id 
+                    join "FeedsMedicines" fm on cd."medicineId" = fm.id
+                  where (cd."transDate" AT TIME ZONE 'GMT')::date>=CAST(${dayjs(start_date).utc().format('YYYY-MM-DD')} as DATE) 
+                  and (cd."transDate" AT TIME ZONE 'GMT')::date<=CAST(${dayjs(end_date).utc().format('YYYY-MM-DD')} as DATE) 
+                  and cd."coopId" = ${parseInt(coop_id.toString())} 
+                  group by fm."SKU",cd."transDate", c.nik, u."name", fm."name", cd.dose, fm.price, cd."coopId"`;
+
+    } catch (error) {
+      throw error;
+    }
   }
+
+  async getDropdownPakan(coopId?: number) {
+    const feeds = await this.prisma.feedsMedicines.findMany({
+      where: { isEatable: true },
+      select: {
+        coopId: true,
+        name: true,
+        quantity: true,
+        id: true,
+      },
+    });
+    let listFeeds = feeds?.map((item) => {
+      return {
+        id: item.id,
+        coopId: item.coopId,
+        name: item.name,
+        quantity: item.quantity
+      };
+    });
+    if (coopId && listFeeds) {
+      return listFeeds.filter(x => x.coopId == coopId);
+    }
+    return listFeeds;
+  }
+
 }

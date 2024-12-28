@@ -33,7 +33,18 @@ import { ReportUploadDto } from 'src/cashflow/dto/reportUpload.dto';
 @ApiTags('Cashflow')
 @Controller('cashflow')
 export class CashflowController {
-  constructor(private readonly cashflowService: CashflowService) {}
+  constructor(private readonly cashflowService: CashflowService) { }
+  
+  @ApiQuery({
+    name: "coopId",
+    type: Number,
+    description: "Id kandang yang dicari.",
+    required: false
+  })
+  @Get('/report-income')
+  async getReportNetIncome(@Query('coopId') coopId?: number) {
+    return await this.cashflowService.getReportNetIncome(coopId)
+  }
 
   @Post()
   create(@Body() createCashflowDto: CreateCashflowDto, @Request() req) {
@@ -85,7 +96,6 @@ export class CashflowController {
 
   @Get('download/:coopId/:period')
   @Header('content-type', 'application/vnd.ms-excel')
-  // @Header('content-disposition', 'attachment; filename="report.xlsx"')
   async downloadXlsxFile(
     @Param('period') period: string,
     @Param('coopId') coopId: number,

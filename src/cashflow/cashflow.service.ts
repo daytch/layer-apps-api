@@ -70,7 +70,7 @@ export class CashflowService {
   constructor(
     private readonly coopService: CoopService,
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   async getTotalDebitCredit() {
     await this.prisma.$executeRaw`with cte_sum as (
@@ -407,9 +407,9 @@ export class CashflowService {
         _totalExpenses:
           item.qty && item.indexs
             ? {
-                formula: `C${idx}*D${idx}`,
-                value: item.totalExpenses ?? '',
-              }
+              formula: `C${idx}*D${idx}`,
+              value: item.totalExpenses ?? '',
+            }
             : (item.totalExpenses ?? ''),
         get totalExpenses() {
           return this._totalExpenses;
@@ -523,6 +523,27 @@ export class CashflowService {
       const buffer = await wb.xlsx.writeBuffer();
       const title = `Laporan Pendapatan ${coop.name} - ${sheetName}.xlsx`;
       return { buffer, title };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+
+  async getReportNetIncome(coopId?: number) {
+    try {
+      const report:any[] = await this.prisma.$queryRaw`SELECT c.id, c.nik, 
+                    r."transDate", 
+                    c.name, 
+                    (r."totalIncome" - r."totalExpenses") AS netIncome
+                FROM public."Report" r
+                INNER JOIN public."Coop" c 
+                ON c.id = r."coopId"
+                WHERE r."jenis" = 'TOTAL'
+                ORDER BY c.nik ASC`;
+      if (coopId && report) {
+        return report.filter(x => x.id == Number(coopId));
+      }
+      return report;
     } catch (error) {
       throw error;
     }

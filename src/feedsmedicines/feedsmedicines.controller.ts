@@ -8,7 +8,7 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth,ApiQuery } from '@nestjs/swagger';
 import { FeedsmedicinesService } from './feedsmedicines.service';
 import { CreateFeedsmedicineDto } from './dto/create-feedsmedicine.dto';
 import { UpdateFeedsmedicineDto } from './dto/update-feedsmedicine.dto';
@@ -19,21 +19,56 @@ import { UpdateFeedsmedicineDto } from './dto/update-feedsmedicine.dto';
 export class FeedsmedicinesController {
   constructor(private readonly feedsmedicinesService: FeedsmedicinesService) {}
 
+  @ApiQuery({
+    name: "coopId",
+    type: Number,
+    description: "Id kandang yang dicari.",
+    required: false
+  })
+  @Get('/dropdown')
+  async dropdown(@Query('coopId') coopId?: number) {
+    return await this.feedsmedicinesService.getDropdownPakan(coopId);
+  }
+
   @Post()
   async create(@Body() createFeedsmedicineDto: CreateFeedsmedicineDto) {
     return await this.feedsmedicinesService.create(createFeedsmedicineDto);
   }
 
+  @ApiQuery({
+    name: "coopId",
+    type: Number,
+    description: "Id kandang yang dicari.",
+    required: false
+  })
   @Get()
-  async findAll() {
-    return await this.feedsmedicinesService.findAll();
+  async findAll(@Query('coopId') coopId?: number) {
+    return await this.feedsmedicinesService.findAll(coopId);
   }
 
+  @ApiQuery({
+    name: "start_date",
+    type: Date,
+    description: "Tanggal awal.",
+    required: false
+  })
+  @ApiQuery({
+    name: "end_date",
+    type: Date,
+    description: "Tanggal akhir.",
+    required: false
+  })
+  @ApiQuery({
+    name: "coop_id",
+    type: Number,
+    description: "id kandang.",
+    required: false
+  })
   @Get('usage-history')
   async getReportHistory(
-    @Query('start_date') start_date: Date,
-    @Query('end_date') end_date: Date,
-    @Query('coop_id') coop_id: number,
+    @Query('start_date') start_date?: Date,
+    @Query('end_date') end_date?: Date,
+    @Query('coop_id') coop_id?: number,
   ) {
     return await this.feedsmedicinesService.getReport(
       start_date,
@@ -59,4 +94,5 @@ export class FeedsmedicinesController {
   remove(@Param('id') id: string) {
     return this.feedsmedicinesService.remove(+id);
   }
+  
 }

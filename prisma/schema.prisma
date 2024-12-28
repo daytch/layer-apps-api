@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -19,8 +13,8 @@ model Role {
   createdAt DateTime   @default(now()) @db.Timestamptz(3)
   updateAt  DateTime   @updatedAt @db.Timestamptz(3)
   RoleMenu  RoleMenu[]
-  Users     Users[]
   SOP       SOP[]
+  Users     Users[]
 }
 
 model Menu {
@@ -36,22 +30,22 @@ model Menu {
 
 model RoleMenu {
   id        Int      @id @default(autoincrement())
-  role      Role     @relation(fields: [roleId], references: [id])
   roleId    Int
-  menu      Menu     @relation(fields: [menuId], references: [id])
   menuId    Int
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updateAt  DateTime @updatedAt @db.Timestamptz(3)
+  menu      Menu     @relation(fields: [menuId], references: [id])
+  role      Role     @relation(fields: [roleId], references: [id])
 }
 
 model UserCoop {
   id        Int      @id @default(autoincrement())
-  user      Users    @relation(fields: [userId], references: [id])
   userId    Int
-  coop      Coop     @relation(fields: [coopId], references: [id])
   coopId    Int
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updateAt  DateTime @updatedAt @db.Timestamptz(3)
+  coop      Coop     @relation(fields: [coopId], references: [id])
+  user      Users    @relation(fields: [userId], references: [id])
 }
 
 model Users {
@@ -59,7 +53,6 @@ model Users {
   nik             String            @unique
   password        String
   name            String
-  role            Role              @relation(fields: [roleId], references: [id])
   roleId          Int
   email           String?
   phone           String?
@@ -67,12 +60,13 @@ model Users {
   is_active       Boolean           @default(true)
   createdAt       DateTime          @default(now()) @db.Timestamptz(3)
   updateAt        DateTime          @updatedAt @db.Timestamptz(3)
-  ProgressSOP     ProgressSOP[]
+  Cashflows       Cashflow[]
   CoopDiagnostics CoopDiagnostics[]
   FeedsMedicines  FeedsMedicines[]
-  UserCoop        UserCoop[]
-  Cashflows       Cashflow[]
   Notification    Notification[]
+  ProgressSOP     ProgressSOP[]
+  UserCoop        UserCoop[]
+  role            Role              @relation(fields: [roleId], references: [id])
 }
 
 model Coop {
@@ -82,19 +76,18 @@ model Coop {
   address         String
   createdAt       DateTime          @default(now()) @db.Timestamptz(3)
   updateAt        DateTime          @updatedAt @db.Timestamptz(3)
-  FeedsMedicines  FeedsMedicines[]
-  EggProduction   EggProduction[]
   CoopDiagnostics CoopDiagnostics[]
-  UserCoop        UserCoop[]
+  EggProduction   EggProduction[]
+  FeedsMedicines  FeedsMedicines[]
+  ProgressSOP     ProgressSOP[]
   Report          Report[]
   ReportTemp      ReportTemp[]
-  ProgressSOP     ProgressSOP[]
+  UserCoop        UserCoop[]
 }
 
 model Cashflow {
   id         Int      @id @default(autoincrement())
   periode    DateTime @db.Date
-  user       Users    @relation(fields: [userId], references: [id])
   userId     Int
   trans_date DateTime @db.Timestamptz(3)
   tipe       String
@@ -102,64 +95,65 @@ model Cashflow {
   total      Int
   createdAt  DateTime @default(now()) @db.Timestamptz(3)
   updateAt   DateTime @updatedAt @db.Timestamptz(3)
+  user       Users    @relation(fields: [userId], references: [id])
 }
 
 model SOP {
   id            Int      @id @default(autoincrement())
-  role          Role     @relation(fields: [roleId], references: [id])
   roleId        Int
   title         String
   time          String
-  isReduceStock Boolean @default(false)
+  isReduceStock Boolean  @default(false)
   description   String
   createdAt     DateTime @default(now()) @db.Timestamptz(3)
   updateAt      DateTime @updatedAt @db.Timestamptz(3)
+  role          Role     @relation(fields: [roleId], references: [id])
 }
 
 model ProgressSOP {
   id        Int      @id @default(autoincrement())
-  user      Users    @relation(fields: [userId], references: [id])
   userId    Int
-  coop      Coop     @relation(fields: [coopId], references: [id])
   coopId    Int
   detail    Json
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updateAt  DateTime @updatedAt @db.Timestamptz(3)
+  coop      Coop     @relation(fields: [coopId], references: [id])
+  user      Users    @relation(fields: [userId], references: [id])
 }
 
 model FeedsMedicines {
   id                    Int                     @id @default(autoincrement())
   SKU                   String                  @unique
-  coop                  Coop                    @relation(fields: [coopId], references: [id])
   coopId                Int
   name                  String
-  user                  Users                   @relation(fields: [userId], references: [id])
   userId                Int
   quantity              Int
   uom                   String?
   price                 Int
   total                 Int
+  isEatable             Boolean                 @default(false)
   createdAt             DateTime                @default(now()) @db.Timestamptz(3)
   updateAt              DateTime                @updatedAt @db.Timestamptz(3)
+  coop                  Coop                    @relation(fields: [coopId], references: [id])
+  user                  Users                   @relation(fields: [userId], references: [id])
   HistoryFeedsMedicines HistoryFeedsMedicines[]
 }
 
 model HistoryFeedsMedicines {
   id                Int             @id @default(autoincrement())
-  feed              FeedsMedicines  @relation(fields: [feedId], references: [id])
   feedId            Int
-  coopDiagnostics   CoopDiagnostics @relation(fields: [coopDiagnosticsId], references: [id])
   coopDiagnosticsId Int
   quantity          Int
   tipe              String
   transDate         DateTime
   createdAt         DateTime        @default(now()) @db.Timestamptz(3)
   updateAt          DateTime        @updatedAt @db.Timestamptz(3)
+  coopDiagnostics   CoopDiagnostics @relation(fields: [coopDiagnosticsId], references: [id])
+  feed              FeedsMedicines  @relation(fields: [feedId], references: [id])
 }
 
 model EggProduction {
   id              Int      @id @default(autoincrement())
-  coop            Coop     @relation(fields: [coopId], references: [id])
   coopId          Int
   transDate       DateTime @db.Timestamptz(3)
   ageInDay        Int?
@@ -187,6 +181,7 @@ model EggProduction {
   OVK             Decimal?
   createdAt       DateTime @default(now()) @db.Timestamptz(3)
   updateAt        DateTime @updatedAt @db.Timestamptz(3)
+  coop            Coop     @relation(fields: [coopId], references: [id])
 }
 
 model EggProductionTemp {
@@ -224,17 +219,17 @@ model EggProductionTemp {
 
 model CoopDiagnostics {
   id                    Int                     @id @default(autoincrement())
-  coop                  Coop                    @relation(fields: [coopId], references: [id])
   coopId                Int
   transDate             DateTime                @db.Timestamptz(3)
   disease               String
   medicineId            Int?
   dose                  Int?
   status                String?
-  reporter              Users                   @relation(fields: [reporterId], references: [id])
   reporterId            Int
   createdAt             DateTime                @default(now()) @db.Timestamptz(3)
   updateAt              DateTime                @updatedAt @db.Timestamptz(3)
+  coop                  Coop                    @relation(fields: [coopId], references: [id])
+  reporter              Users                   @relation(fields: [reporterId], references: [id])
   historyFeedsMedicines HistoryFeedsMedicines[]
   Notification          Notification[]
 }
@@ -244,17 +239,16 @@ model Notification {
   message      String
   isRead       Boolean         @default(false)
   reporter     String
-  listener     Users           @relation(fields: [listenerId], references: [id])
   listenerId   Int
-  diagnostic   CoopDiagnostics @relation(fields: [diagnosticId], references: [id])
   diagnosticId Int
   createdAt    DateTime        @default(now()) @db.Timestamptz(3)
   updatedAt    DateTime        @updatedAt @db.Timestamptz(3)
+  diagnostic   CoopDiagnostics @relation(fields: [diagnosticId], references: [id])
+  listener     Users           @relation(fields: [listenerId], references: [id])
 }
 
 model Report {
   id            Int      @id @default(autoincrement())
-  coop          Coop     @relation(fields: [coopId], references: [id])
   coopId        Int
   transDate     DateTime @db.Timestamptz(3)
   jenis         String?
@@ -267,12 +261,12 @@ model Report {
   totalExpenses Int?
   createdAt     DateTime @default(now()) @db.Timestamptz(3)
   updatedAt     DateTime @updatedAt @db.Timestamptz(3)
+  coop          Coop     @relation(fields: [coopId], references: [id])
 }
 
 model ReportTemp {
   id            Int      @id @default(autoincrement())
   isDuplicate   Boolean
-  coop          Coop     @relation(fields: [coopId], references: [id])
   coopId        Int
   transDate     DateTime @db.Timestamptz(3)
   jenis         String?
@@ -285,4 +279,5 @@ model ReportTemp {
   totalExpenses Int?
   createdAt     DateTime @default(now()) @db.Timestamptz(3)
   updatedAt     DateTime @updatedAt @db.Timestamptz(3)
+  coop          Coop     @relation(fields: [coopId], references: [id])
 }

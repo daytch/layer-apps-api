@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsOptional } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsBoolean } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateFeedsmedicineDto {
@@ -30,4 +30,8 @@ export class CreateFeedsmedicineDto {
   @IsString()
   @IsOptional()
   uom?: string;
+  
+  @ApiProperty()
+  @IsBoolean()
+  isEatable?: boolean;
 }
