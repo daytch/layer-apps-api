@@ -41,9 +41,15 @@ export class CashflowController {
     description: "Id kandang yang dicari.",
     required: false
   })
+  @ApiQuery({
+    name: "period",
+    type: Date,
+    description: "Periode laporan yang dicari.",
+    required: false
+  })
   @Get('/report-income')
-  async getReportNetIncome(@Query('coopId') coopId?: number) {
-    return await this.cashflowService.getReportNetIncome(coopId)
+  async getReportNetIncome(@Query('coopId') coopId?: number,@Query('period') period?: Date) {
+    return await this.cashflowService.getReportNetIncome(coopId,period)
   }
 
   @Post()

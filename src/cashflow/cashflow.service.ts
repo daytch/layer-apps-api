@@ -529,20 +529,38 @@ export class CashflowService {
   }
 
 
-  async getReportNetIncome(coopId?: number) {
+  async getReportNetIncome(coopId?: number, period?: Date) {
     try {
-      const report:any[] = await this.prisma.$queryRaw`SELECT c.id, c.nik, 
-                    r."transDate", 
-                    c.name, 
-                    (r."totalIncome" - r."totalExpenses") AS netIncome
-                FROM public."Report" r
-                INNER JOIN public."Coop" c 
-                ON c.id = r."coopId"
-                WHERE r."jenis" = 'TOTAL'
-                ORDER BY c.nik ASC`;
+      let report: any[] = [];
+      if (period) {
+        const p = new Date(period);
+        report = await this.prisma.$queryRaw`SELECT r.id, r.coopId, c.nik, 
+              r."transDate", 
+              c.name, 
+              (r."totalIncome" - r."totalExpenses") AS netIncome,
+              ${period} AS "period"
+          FROM public."Report" r
+          INNER JOIN public."Coop" c 
+          ON c.id = r."coopId"
+          WHERE r."jenis" = 'TOTAL' AND (r."transDate" > ${new Date(p.getFullYear(),p.getMonth(),0)} AND r."transDate" < ${new Date(p.getFullYear(),p.getMonth()+1,1)})
+          ORDER BY c.nik ASC`;
+      } else {
+        report = await this.prisma.$queryRaw`SELECT r.id, r.coopId, c.nik, 
+              r."transDate", 
+              c.name, 
+              (r."totalIncome" - r."totalExpenses") AS netIncome,
+              ${period} AS "period"
+          FROM public."Report" r
+          INNER JOIN public."Coop" c 
+          ON c.id = r."coopId"
+          WHERE r."jenis" = 'TOTAL'
+          ORDER BY c.nik ASC`;
+      }
+
       if (coopId && report) {
         return report.filter(x => x.id == Number(coopId));
       }
+
       return report;
     } catch (error) {
       throw error;

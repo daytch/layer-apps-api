@@ -59,7 +59,7 @@ export class SopService {
         return 'SOP Id, User Id dan Id Kandang wajib diisi.';
       }
       const progress: { id: number; detail: any }[] = await this.prisma
-        .$queryRaw`select ps."id", ps."detail" from "ProgressSOP" ps where (ps."createdAt" AT TIME ZONE 'GMT')::date=CAST(${dayjs().utc().format('YYYY-MM-DD')} as DATE) and ps."userId"=${completeDto.userId} and ps.coopId=${Number(completeDto.coopId)}`;
+        .$queryRaw`select ps."id", ps."detail" from "ProgressSOP" ps where (ps."createdAt" AT TIME ZONE 'GMT')::date=CAST(${dayjs().utc().format('YYYY-MM-DD')} as DATE) and ps."userId"=${completeDto.userId} and ps."coopId"=${Number(completeDto.coopId)}`;
 
       const detail = progress.length > 0 ? progress[0].detail : '';
       if (detail) {
