@@ -534,9 +534,11 @@ export class CashflowService {
       let report: any[] = [];
       if (period) {
         const p = new Date(period);
-        report = await this.prisma.$queryRaw`SELECT r.id, r.coopId, c.nik, 
+        report = await this.prisma.$queryRaw`SELECT r.id, r."coopId", c.nik, c."name",
               r."transDate", 
               c.name, 
+              r."totalIncome",
+              r."totalExpenses",
               (r."totalIncome" - r."totalExpenses") AS netIncome,
               ${period} AS "period"
           FROM public."Report" r
@@ -545,9 +547,11 @@ export class CashflowService {
           WHERE r."jenis" = 'TOTAL' AND (r."transDate" > ${new Date(p.getFullYear(),p.getMonth(),0)} AND r."transDate" < ${new Date(p.getFullYear(),p.getMonth()+1,1)})
           ORDER BY c.nik ASC`;
       } else {
-        report = await this.prisma.$queryRaw`SELECT r.id, r.coopId, c.nik, 
+        report = await this.prisma.$queryRaw`SELECT r.id, r."coopId", c.nik, c."name",
               r."transDate", 
               c.name, 
+              r."totalIncome",
+              r."totalExpenses",
               (r."totalIncome" - r."totalExpenses") AS netIncome,
               ${period} AS "period"
           FROM public."Report" r
@@ -558,7 +562,7 @@ export class CashflowService {
       }
 
       if (coopId && report) {
-        return report.filter(x => x.id == Number(coopId));
+        return report.filter(x => x.coopId == Number(coopId));
       }
 
       return report;
