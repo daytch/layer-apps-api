@@ -263,7 +263,7 @@ export class UsersService {
         const data = createUsersDto.coopId?.map((itm) => {
           return {
             userId: u.id,
-            coopId: itm,
+            coopId: Number(itm),
           };
         });
         await this.prisma.userCoop.createMany({ data: data });

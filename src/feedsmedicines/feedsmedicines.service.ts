@@ -55,6 +55,7 @@ export class FeedsmedicinesService {
           select: { name: true },
         },
         id: true,
+        isEatable:true
       },
     });
     let listFeeds = feeds?.map((item) => {
@@ -69,6 +70,7 @@ export class FeedsmedicinesService {
         price: item.price,
         total: item.total,
         coop_name: item.coop.name,
+        isEatable: item.isEatable
       };
     });
     if (coopId && listFeeds) {
