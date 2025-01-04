@@ -55,7 +55,7 @@ export class FeedsmedicinesService {
           select: { name: true },
         },
         id: true,
-        isEatable:true
+        isEatable: true
       },
     });
     let listFeeds = feeds?.map((item) => {
@@ -127,9 +127,14 @@ export class FeedsmedicinesService {
   }
 
   async remove(id: number) {
-    return await this.prisma.feedsMedicines.delete({
-      where: { id },
-    });
+    try {
+      await this.prisma.historyFeedsMedicines.deleteMany({ where: { feedId: id } });
+      return await this.prisma.feedsMedicines.delete({
+        where: { id },
+      });
+    } catch (error) {
+
+    }
   }
 
   async getReport(
