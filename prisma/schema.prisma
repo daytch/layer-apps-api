@@ -74,9 +74,9 @@ model Coop {
   name            String
   nik             String            @unique
   address         String
-  isActive        Boolean           @default(true)
   createdAt       DateTime          @default(now()) @db.Timestamptz(3)
   updateAt        DateTime          @updatedAt @db.Timestamptz(3)
+  isActive        Boolean           @default(true)
   CoopDiagnostics CoopDiagnostics[]
   EggProduction   EggProduction[]
   FeedsMedicines  FeedsMedicines[]
@@ -133,9 +133,9 @@ model FeedsMedicines {
   price                 Int
   total                 Int
   isEatable             Boolean                 @default(false)
-  isActive              Boolean                 @default(true)  
   createdAt             DateTime                @default(now()) @db.Timestamptz(3)
   updateAt              DateTime                @updatedAt @db.Timestamptz(3)
+  isActive              Boolean                 @default(true)
   coop                  Coop                    @relation(fields: [coopId], references: [id])
   user                  Users                   @relation(fields: [userId], references: [id])
   HistoryFeedsMedicines HistoryFeedsMedicines[]
@@ -180,7 +180,7 @@ model EggProduction {
   FCR             Decimal?
   EggWeight       Decimal?
   EggMass         Decimal?
-  OVK             Decimal?
+  OVK             String?
   createdAt       DateTime @default(now()) @db.Timestamptz(3)
   updateAt        DateTime @updatedAt @db.Timestamptz(3)
   coop            Coop     @relation(fields: [coopId], references: [id])
@@ -214,7 +214,7 @@ model EggProductionTemp {
   FCR             Decimal?
   EggWeight       Decimal?
   EggMass         Decimal?
-  OVK             Decimal?
+  OVK             String?
   createdAt       DateTime @default(now()) @db.Timestamptz(3)
   updateAt        DateTime @updatedAt @db.Timestamptz(3)
 }

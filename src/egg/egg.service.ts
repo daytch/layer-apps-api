@@ -286,7 +286,7 @@ export class EggService {
             FCR: getValue(fcr, 'float'),
             EggWeight: getValue(w, 'float'),
             EggMass: getValue(mass, 'float'),
-            OVK: getValue(ovk, 'float'),
+            OVK: getValue(ovk, 'string'),
           };
           const activeData = listEggs.filter((egg) => {
             return (

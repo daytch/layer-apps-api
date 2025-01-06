@@ -74,5 +74,5 @@ export class UpdateEggs {
   EggMass: number;
 
   @ApiProperty()
-  OVK: number;
+  OVK: string;
 }
