@@ -28,6 +28,7 @@ export class FeedsmedicinesService {
           price: Number(dto.price),
           total: Number(dto.quantity) * Number(dto.price),
           isEatable: dto.isEatable ?? false,
+          isActive: true
         };
         return await this.prisma.feedsMedicines.create({ data: dt });
       }
@@ -42,6 +43,7 @@ export class FeedsmedicinesService {
 
   async findAll(coopId?: number) {
     const feeds = await this.prisma.feedsMedicines.findMany({
+      where: { isActive: true },
       select: {
         coopId: true,
         name: true,
@@ -128,9 +130,9 @@ export class FeedsmedicinesService {
 
   async remove(id: number) {
     try {
-      await this.prisma.historyFeedsMedicines.deleteMany({ where: { feedId: id } });
-      return await this.prisma.feedsMedicines.delete({
+      return await this.prisma.feedsMedicines.update({
         where: { id },
+        data: { isActive: false }
       });
     } catch (error) {
 
