@@ -61,13 +61,6 @@ export class CronsService {
                 detail,
               });
             }
-          } else {
-            allSOP.push({
-              createdAt: new Date(),
-              coopId: null,
-              userId: user?.id,
-              detail,
-            });
           }
       }
       const createMany = await this.prisma.progressSOP.createMany({

@@ -6,7 +6,7 @@ import { Coop } from '@prisma/client';
 
 @Injectable()
 export class CoopService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   generateNIK = (total: number, code: string) => {
     return `${total + 1}CK${code}`;
@@ -24,7 +24,7 @@ export class CoopService {
   }
 
   async findAll() {
-    return await this.prisma.coop.findMany();
+    return await this.prisma.coop.findMany({ where: { isActive: true } });
   }
 
   async findOne(id: number) {
@@ -43,8 +43,9 @@ export class CoopService {
   }
 
   async remove(id: number) {
-    return await this.prisma.coop.delete({
+    return await this.prisma.coop.update({
       where: { id },
+      data: { isActive: false },
     });
   }
 }

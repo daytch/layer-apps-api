@@ -74,6 +74,7 @@ model Coop {
   name            String
   nik             String            @unique
   address         String
+  isActive        Boolean           @default(true)
   createdAt       DateTime          @default(now()) @db.Timestamptz(3)
   updateAt        DateTime          @updatedAt @db.Timestamptz(3)
   CoopDiagnostics CoopDiagnostics[]
