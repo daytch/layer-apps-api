@@ -144,13 +144,14 @@ model FeedsMedicines {
 model HistoryFeedsMedicines {
   id                Int             @id @default(autoincrement())
   feedId            Int
-  coopDiagnosticsId Int
+  coopDiagnosticsId Int?
   quantity          Int
+  coopId            Int?
   tipe              String
   transDate         DateTime
   createdAt         DateTime        @default(now()) @db.Timestamptz(3)
   updateAt          DateTime        @updatedAt @db.Timestamptz(3)
-  coopDiagnostics   CoopDiagnostics @relation(fields: [coopDiagnosticsId], references: [id])
+  // coopDiagnostics   CoopDiagnostics @relation(fields: [coopDiagnosticsId], references: [id])
   feed              FeedsMedicines  @relation(fields: [feedId], references: [id])
 }
 
@@ -232,7 +233,6 @@ model CoopDiagnostics {
   updateAt              DateTime                @updatedAt @db.Timestamptz(3)
   coop                  Coop                    @relation(fields: [coopId], references: [id])
   reporter              Users                   @relation(fields: [reporterId], references: [id])
-  historyFeedsMedicines HistoryFeedsMedicines[]
   Notification          Notification[]
 }
 

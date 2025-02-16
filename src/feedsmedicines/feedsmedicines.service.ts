@@ -2,11 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { CreateFeedsmedicineDto } from './dto/create-feedsmedicine.dto';
 import { UpdateFeedsmedicineDto } from './dto/update-feedsmedicine.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ConsumptionDto } from './dto/consumption.dto';
 import * as dayjs from 'dayjs';
 
 @Injectable()
 export class FeedsmedicinesService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateFeedsmedicineDto) {
     try {
@@ -28,7 +29,7 @@ export class FeedsmedicinesService {
           price: Number(dto.price),
           total: Number(dto.quantity) * Number(dto.price),
           isEatable: dto.isEatable ?? false,
-          isActive: true
+          isActive: true,
         };
         return await this.prisma.feedsMedicines.create({ data: dt });
       }
@@ -57,10 +58,10 @@ export class FeedsmedicinesService {
           select: { name: true },
         },
         id: true,
-        isEatable: true
+        isEatable: true,
       },
     });
-    let listFeeds = feeds?.map((item) => {
+    const listFeeds = feeds?.map((item) => {
       return {
         id: item.id,
         coopId: item.coopId,
@@ -72,11 +73,11 @@ export class FeedsmedicinesService {
         price: item.price,
         total: item.total,
         coop_name: item.coop.name,
-        isEatable: item.isEatable
+        isEatable: item.isEatable,
       };
     });
     if (coopId && listFeeds) {
-      return listFeeds.filter(x => x.coopId == Number(coopId));
+      return listFeeds.filter((x) => x.coopId == Number(coopId));
     }
     return listFeeds;
   }
@@ -132,18 +133,12 @@ export class FeedsmedicinesService {
     try {
       return await this.prisma.feedsMedicines.update({
         where: { id },
-        data: { isActive: false }
+        data: { isActive: false },
       });
-    } catch (error) {
-
-    }
+    } catch (error) {}
   }
 
-  async getReport(
-    start_date?: Date,
-    end_date?: Date,
-    coop_id?: number,
-  ) {
+  async getReport(start_date?: Date, end_date?: Date, coop_id?: number) {
     try {
       if (!start_date && !end_date && !coop_id) {
         return await this.prisma.$queryRaw`select  
@@ -180,7 +175,6 @@ export class FeedsmedicinesService {
                   and (cd."transDate" AT TIME ZONE 'GMT')::date<=CAST(${dayjs(end_date).utc().format('YYYY-MM-DD')} as DATE) 
                   and cd."coopId" = ${parseInt(coop_id.toString())} 
                   group by fm."SKU",cd."transDate", c.nik, u."name", fm."name", cd.dose, fm.price, cd."coopId"`;
-
     } catch (error) {
       throw error;
     }
@@ -196,18 +190,32 @@ export class FeedsmedicinesService {
         id: true,
       },
     });
-    let listFeeds = feeds?.map((item) => {
+    const listFeeds = feeds?.map((item) => {
       return {
         id: item.id,
         coopId: item.coopId,
         name: item.name,
-        quantity: item.quantity
+        quantity: item.quantity,
       };
     });
     if (coopId && listFeeds) {
-      return listFeeds.filter(x => x.coopId == coopId);
+      return listFeeds.filter((x) => x.coopId == coopId);
     }
     return listFeeds;
   }
 
+  async consumption(consumptionDto: ConsumptionDto) {
+    return await this.prisma.historyFeedsMedicines.create({
+      data: {
+        transDate: consumptionDto.transDate,
+        //feedId: consumptionDto.feedId,
+        quantity: consumptionDto.total,
+        coopId: consumptionDto.coopId,
+        feed: {
+          connect: { id: consumptionDto.feedId },
+        },
+        tipe: 'KREDIT',
+      },
+    });
+  }
 }

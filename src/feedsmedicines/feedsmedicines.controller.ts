@@ -8,10 +8,11 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth,ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { FeedsmedicinesService } from './feedsmedicines.service';
 import { CreateFeedsmedicineDto } from './dto/create-feedsmedicine.dto';
 import { UpdateFeedsmedicineDto } from './dto/update-feedsmedicine.dto';
+import { ConsumptionDto } from './dto/consumption.dto';
 
 @ApiBearerAuth()
 @ApiTags('Obat')
@@ -20,10 +21,10 @@ export class FeedsmedicinesController {
   constructor(private readonly feedsmedicinesService: FeedsmedicinesService) {}
 
   @ApiQuery({
-    name: "coopId",
+    name: 'coopId',
     type: Number,
-    description: "Id kandang yang dicari.",
-    required: false
+    description: 'Id kandang yang dicari.',
+    required: false,
   })
   @Get('/dropdown')
   async dropdown(@Query('coopId') coopId?: number) {
@@ -36,10 +37,10 @@ export class FeedsmedicinesController {
   }
 
   @ApiQuery({
-    name: "coopId",
+    name: 'coopId',
     type: Number,
-    description: "Id kandang yang dicari.",
-    required: false
+    description: 'Id kandang yang dicari.',
+    required: false,
   })
   @Get()
   async findAll(@Query('coopId') coopId?: number) {
@@ -47,22 +48,22 @@ export class FeedsmedicinesController {
   }
 
   @ApiQuery({
-    name: "start_date",
+    name: 'start_date',
     type: Date,
-    description: "Tanggal awal.",
-    required: false
+    description: 'Tanggal awal.',
+    required: false,
   })
   @ApiQuery({
-    name: "end_date",
+    name: 'end_date',
     type: Date,
-    description: "Tanggal akhir.",
-    required: false
+    description: 'Tanggal akhir.',
+    required: false,
   })
   @ApiQuery({
-    name: "coop_id",
+    name: 'coop_id',
     type: Number,
-    description: "id kandang.",
-    required: false
+    description: 'id kandang.',
+    required: false,
   })
   @Get('usage-history')
   async getReportHistory(
@@ -94,5 +95,9 @@ export class FeedsmedicinesController {
   remove(@Param('id') id: string) {
     return this.feedsmedicinesService.remove(+id);
   }
-  
+
+  @Post('/consumption')
+  async consumption(@Body() consumptionDto: ConsumptionDto) {
+    return await this.feedsmedicinesService.consumption(consumptionDto);
+  }
 }

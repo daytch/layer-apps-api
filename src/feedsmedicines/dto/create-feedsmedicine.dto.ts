@@ -30,7 +30,7 @@ export class CreateFeedsmedicineDto {
   @IsString()
   @IsOptional()
   uom?: string;
-  
+
   @ApiProperty()
   @IsBoolean()
   isEatable?: boolean;
