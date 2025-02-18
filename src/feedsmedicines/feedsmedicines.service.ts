@@ -147,7 +147,7 @@ export class FeedsmedicinesService {
                       (cd."transDate" AT TIME ZONE 'Asia/Jakarta')::date as transaction_date,
                       fm."name" as medicine,
                       'KREDIT' as tipe, 
-                      cd.dose as qty, 
+                      SUM(cd.dose) as qty, 
                       cd.dose * fm.price as total,
                       cd."coopId",
                       c."name" as coop_name
@@ -157,7 +157,7 @@ export class FeedsmedicinesService {
                       join "Users" u on cd."reporterId"=u.id 
                       join "FeedsMedicines" fm on cd."medicineId" = fm.id
                     where cd."coopId" = ${Number(coop_id)}
-                    group by fm."SKU",cd."transDate", c.nik, u."name", fm."name", cd.dose, fm.price, cd."coopId", c."name"`;
+                    group by fm."SKU",cd."transDate", c.nik, u."name", fm."name", fm.price, cd."coopId", c."name"`;
       }
       return await this.prisma.$queryRaw`select  
                     fm."SKU" as sku, 
@@ -165,7 +165,7 @@ export class FeedsmedicinesService {
                     (cd."transDate" AT TIME ZONE 'Asia/Jakarta')::date as transaction_date,
                     fm."name" as medicine,
                     'KREDIT' as tipe, 
-                    cd.dose as qty, 
+                    SUM(cd.dose) as qty, 
                     cd.dose * fm.price as total,
                     cd."coopId",
                     c."name" as coop_name
@@ -177,7 +177,7 @@ export class FeedsmedicinesService {
                   where (cd."transDate" AT TIME ZONE 'GMT')::date>=CAST(${dayjs(start_date).utc().format('YYYY-MM-DD')} as DATE) 
                   and (cd."transDate" AT TIME ZONE 'GMT')::date<=CAST(${dayjs(end_date).utc().format('YYYY-MM-DD')} as DATE) 
                   and cd."coopId" = ${parseInt(coop_id.toString())} 
-                  group by fm."SKU",cd."transDate", c.nik, u."name", fm."name", cd.dose, fm.price, cd."coopId", c."name"`;
+                  group by fm."SKU",cd."transDate", c.nik, u."name", fm."name", fm.price, cd."coopId", c."name"`;
     } catch (error) {
       throw error;
     }
