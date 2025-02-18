@@ -140,7 +140,7 @@ export class FeedsmedicinesService {
 
   async getReport(start_date?: Date, end_date?: Date, coop_id?: number) {
     try {
-      if (!start_date && !end_date && !coop_id) {
+      if (!start_date && !end_date) {
         return await this.prisma.$queryRaw`select  
                       fm."SKU" as sku, 
                       u."name" pic, 
@@ -149,12 +149,14 @@ export class FeedsmedicinesService {
                       'KREDIT' as tipe, 
                       cd.dose as qty, 
                       cd.dose * fm.price as total,
-                      cd."coopId"
+                      cd."coopId",
+                      cd."name" as coop_name
                     from "HistoryFeedsMedicines" hfm
                       join "CoopDiagnostics" cd on hfm."coopDiagnosticsId" = cd.id 
                       join "Coop" c on cd."coopId" = c.id 
                       join "Users" u on cd."reporterId"=u.id 
                       join "FeedsMedicines" fm on cd."medicineId" = fm.id
+                    where cd."coopId" = ${Number(coop_id)}
                     group by fm."SKU",cd."transDate", c.nik, u."name", fm."name", cd.dose, fm.price, cd."coopId"`;
       }
       return await this.prisma.$queryRaw`select  
@@ -165,7 +167,8 @@ export class FeedsmedicinesService {
                     'KREDIT' as tipe, 
                     cd.dose as qty, 
                     cd.dose * fm.price as total,
-                    cd."coopId"
+                    cd."coopId",
+                    cd."name" as coop_name
                   from "HistoryFeedsMedicines" hfm
                     join "CoopDiagnostics" cd on hfm."coopDiagnosticsId" = cd.id 
                     join "Coop" c on cd."coopId" = c.id 
