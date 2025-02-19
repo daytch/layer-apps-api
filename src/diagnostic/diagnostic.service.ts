@@ -40,9 +40,7 @@ export class DiagnosticService {
         diagnosticId: result.id,
       });
     });
-    await this.prisma.notification.createMany({
-      data: datas,
-    });
+    await this.prisma.notification.createMany({ data: datas });
     return result;
   }
 
@@ -120,6 +118,8 @@ export class DiagnosticService {
           tipe: 'medicine',
           transDate: dayjs().utc().toDate(),
           coopDiagnosticsId: id,
+          coopId: result.coopId,
+          userId: result.reporterId,
         },
       });
     }
@@ -142,9 +142,7 @@ export class DiagnosticService {
         diagnosticId: id,
       });
     });
-    await this.prisma.notification.createMany({
-      data: datas,
-    });
+    await this.prisma.notification.createMany({ data: datas });
     return result;
   }
 

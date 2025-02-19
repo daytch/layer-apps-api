@@ -147,6 +147,7 @@ model HistoryFeedsMedicines {
   coopDiagnosticsId Int?
   quantity          Int
   coopId            Int?
+  userId            Int?
   tipe              String
   transDate         DateTime
   createdAt         DateTime        @default(now()) @db.Timestamptz(3)

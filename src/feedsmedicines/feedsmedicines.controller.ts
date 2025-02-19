@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  Request,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { FeedsmedicinesService } from './feedsmedicines.service';
@@ -97,7 +98,7 @@ export class FeedsmedicinesController {
   }
 
   @Post('/consumption')
-  async consumption(@Body() consumptionDto: ConsumptionDto) {
-    return await this.feedsmedicinesService.consumption(consumptionDto);
+  async consumption(@Body() consumptionDto: ConsumptionDto, @Request() req) {
+    return await this.feedsmedicinesService.consumption(consumptionDto, req);
   }
 }

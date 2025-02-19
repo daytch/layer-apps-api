@@ -54,9 +54,7 @@ export class FeedsmedicinesService {
         uom: true,
         price: true,
         total: true,
-        coop: {
-          select: { name: true },
-        },
+        coop: { select: { name: true } },
         id: true,
         isEatable: true,
       },
@@ -95,9 +93,7 @@ export class FeedsmedicinesService {
         uom: true,
         price: true,
         total: true,
-        coop: {
-          select: { name: true },
-        },
+        coop: { select: { name: true } },
       },
     });
     return {
@@ -116,10 +112,7 @@ export class FeedsmedicinesService {
 
   update(id: number, dto: UpdateFeedsmedicineDto) {
     try {
-      return this.prisma.feedsMedicines.update({
-        where: { id },
-        data: dto,
-      });
+      return this.prisma.feedsMedicines.update({ where: { id }, data: dto });
     } catch (error) {
       return error?.message
         ? error.message
@@ -141,43 +134,36 @@ export class FeedsmedicinesService {
   async getReport(start_date?: Date, end_date?: Date, coop_id?: number) {
     try {
       if (!start_date && !end_date) {
-        return await this.prisma.$queryRaw`select  
-                      fm."SKU" as sku, 
-                      u."name" pic, 
-                      (cd."transDate" AT TIME ZONE 'Asia/Jakarta')::date as transaction_date,
-                      fm."name" as medicine,
-                      'KREDIT' as tipe, 
-                    cd.dose as qty, 
-                    cd.dose * fm.price as total,
-                      cd."coopId",
+        return await this.prisma.$queryRaw`select fm."SKU" as sku, 
+                      u."name" as pic,
+                      (hfm."transDate" AT TIME ZONE 'Asia/Jakarta')::date as transaction_date,
+                        fm."name" as medicine,
+                      'KREDIT' as tipe,
+                      hfm.quantity as qty,
+                        hfm.quantity * fm.price as total,
+                      hfm."coopId",
                       c."name" as coop_name
                     from "HistoryFeedsMedicines" hfm
-                      join "CoopDiagnostics" cd on hfm."coopDiagnosticsId" = cd.id 
-                      join "Coop" c on cd."coopId" = c.id 
-                      join "Users" u on cd."reporterId"=u.id 
-                      join "FeedsMedicines" fm on cd."medicineId" = fm.id
-                    where cd."coopId" = ${Number(coop_id)}`;
-        // group by fm."SKU",cd."transDate", c.nik, u."name", fm."name", fm.price, cd."coopId", c."name"`;
+                    join "FeedsMedicines" fm on hfm."feedId" =fm.id 
+                    left join "Coop" c on hfm."coopId"=c.id 
+                    left join "Users" u on hfm."userId"=u.id`;
       }
-      return await this.prisma.$queryRaw`select  
-                    fm."SKU" as sku, 
-                    u."name" pic, 
-                    (cd."transDate" AT TIME ZONE 'Asia/Jakarta')::date as transaction_date,
-                    fm."name" as medicine,
-                    'KREDIT' as tipe, 
-                    cd.dose as qty, 
-                    cd.dose * fm.price as total,
-                    cd."coopId",
+      return await this.prisma.$queryRaw`select fm."SKU" as sku, 
+                    u."name" as pic,
+                    (hfm."transDate" AT TIME ZONE 'Asia/Jakarta')::date as transaction_date,
+                      fm."name" as medicine,
+                    'KREDIT' as tipe,
+                    hfm.quantity as qty,
+                    hfm.quantity * fm.price as total,
+                    hfm."coopId",
                     c."name" as coop_name
                   from "HistoryFeedsMedicines" hfm
-                    join "CoopDiagnostics" cd on hfm."coopDiagnosticsId" = cd.id 
-                    join "Coop" c on cd."coopId" = c.id 
-                    join "Users" u on cd."reporterId"=u.id 
-                    join "FeedsMedicines" fm on cd."medicineId" = fm.id
-                  where (cd."transDate" AT TIME ZONE 'GMT')::date>=CAST(${dayjs(start_date).utc().format('YYYY-MM-DD')} as DATE) 
-                  and (cd."transDate" AT TIME ZONE 'GMT')::date<=CAST(${dayjs(end_date).utc().format('YYYY-MM-DD')} as DATE) 
+                  join "FeedsMedicines" fm on hfm."feedId" =fm.id 
+                  left join "Coop" c on hfm."coopId"=c.id 
+                  left join "Users" u on hfm."userId"=u.id 
+                  where (hfm."transDate" AT TIME ZONE 'GMT')::date>=CAST(${dayjs(start_date).utc().format('YYYY-MM-DD')} as DATE) 
+                  and (hfm."transDate" AT TIME ZONE 'GMT')::date<=CAST(${dayjs(end_date).utc().format('YYYY-MM-DD')} as DATE) 
                   and cd."coopId" = ${parseInt(coop_id.toString())}`;
-      // group by fm."SKU",cd."transDate", c.nik, u."name", fm."name", fm.price, cd."coopId", c."name"`;
     } catch (error) {
       throw error;
     }
@@ -230,12 +216,7 @@ export class FeedsmedicinesService {
   async getDropdownPakan(coopId?: number) {
     const feeds = await this.prisma.feedsMedicines.findMany({
       where: { isEatable: true },
-      select: {
-        coopId: true,
-        name: true,
-        quantity: true,
-        id: true,
-      },
+      select: { coopId: true, name: true, quantity: true, id: true },
     });
     const listFeeds = feeds?.map((item) => {
       return {
@@ -251,16 +232,14 @@ export class FeedsmedicinesService {
     return listFeeds;
   }
 
-  async consumption(consumptionDto: ConsumptionDto) {
+  async consumption(consumptionDto: ConsumptionDto, req: any) {
     return await this.prisma.historyFeedsMedicines.create({
       data: {
         transDate: consumptionDto.transDate,
-        //feedId: consumptionDto.feedId,
+        userId: req.user.uid,
         quantity: consumptionDto.total,
         coopId: consumptionDto.coopId,
-        feed: {
-          connect: { id: consumptionDto.feedId },
-        },
+        feed: { connect: { id: consumptionDto.feedId } },
         tipe: 'KREDIT',
       },
     });
