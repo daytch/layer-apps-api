@@ -233,6 +233,12 @@ export class FeedsmedicinesService {
   }
 
   async consumption(consumptionDto: ConsumptionDto, req: any) {
+    // substract total food and medicines
+    await this.prisma.feedsMedicines.update({
+      where: { id: consumptionDto.feedId },
+      data: { quantity: { decrement: consumptionDto.total } },
+    });
+
     return await this.prisma.historyFeedsMedicines.create({
       data: {
         transDate: consumptionDto.transDate,
