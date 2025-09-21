@@ -46,6 +46,8 @@ model UserCoop {
   updateAt  DateTime @updatedAt @db.Timestamptz(3)
   coop      Coop     @relation(fields: [coopId], references: [id])
   user      Users    @relation(fields: [userId], references: [id])
+
+  @@unique([userId, coopId]) // tambahin ini
 }
 
 model Users {
