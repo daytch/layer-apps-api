@@ -70,7 +70,7 @@ export class CashflowService {
   constructor(
     private readonly coopService: CoopService,
     private readonly prisma: PrismaService,
-  ) { }
+  ) {}
 
   async getTotalDebitCredit() {
     await this.prisma.$executeRaw`with cte_sum as (
@@ -407,9 +407,9 @@ export class CashflowService {
         _totalExpenses:
           item.qty && item.indexs
             ? {
-              formula: `C${idx}*D${idx}`,
-              value: item.totalExpenses ?? '',
-            }
+                formula: `C${idx}*D${idx}`,
+                value: item.totalExpenses ?? '',
+              }
             : (item.totalExpenses ?? ''),
         get totalExpenses() {
           return this._totalExpenses;
@@ -528,41 +528,56 @@ export class CashflowService {
     }
   }
 
-
   async getReportNetIncome(coopId?: number, period?: Date) {
     try {
       let report: any[] = [];
+
       if (period) {
         const p = new Date(period);
-        report = await this.prisma.$queryRaw`SELECT r.id, r."coopId", c.nik, c."name",
-              r."transDate", 
-              c.name, 
-              r."totalIncome",
-              r."totalExpenses",
-              (r."totalIncome" - r."totalExpenses") AS netIncome,
-              ${period} AS "period"
-          FROM public."Report" r
-          INNER JOIN public."Coop" c 
+        const startDate = new Date(p.getFullYear(), p.getMonth(), 1);
+        const endDate = new Date(p.getFullYear(), p.getMonth() + 1, 1);
+
+        report = await this.prisma.$queryRaw`
+        SELECT 
+          c.id,
+          r."coopId",
+          c.nik,
+          c."name",
+          date_trunc('month', r."transDate")::date AS "transDate",
+          SUM(r."totalIncome") AS "totalIncome",
+          SUM(r."totalExpenses") AS "totalExpenses",
+          SUM(r."totalIncome") - SUM(r."totalExpenses") AS "netIncome",
+          ${p.toISOString().substring(0, 10)} AS "period"
+        FROM public."Report" r
+        INNER JOIN public."Coop" c 
           ON c.id = r."coopId"
-          WHERE r."jenis" = 'TOTAL' AND (r."transDate" > ${new Date(p.getFullYear(),p.getMonth(),0)} AND r."transDate" < ${new Date(p.getFullYear(),p.getMonth()+1,1)})
-          ORDER BY c.nik ASC`;
+        WHERE r."transDate" >= ${startDate}
+          AND r."transDate" < ${endDate}
+        GROUP BY c.id, r."coopId", c.nik, c."name", date_trunc('month', r."transDate")
+        ORDER BY c.nik ASC;
+      `;
       } else {
-        report = await this.prisma.$queryRaw`SELECT r.id, r."coopId", c.nik, c."name",
-              r."transDate", 
-              c.name, 
-              r."totalIncome",
-              r."totalExpenses",
-              (r."totalIncome" - r."totalExpenses") AS netIncome,
-              ${period} AS "period"
-          FROM public."Report" r
-          INNER JOIN public."Coop" c 
+        report = await this.prisma.$queryRaw`
+        SELECT 
+          c.id,
+          r."coopId",
+          c.nik,
+          c."name",
+          date_trunc('month', r."transDate")::date AS "transDate",
+          SUM(r."totalIncome") AS "totalIncome",
+          SUM(r."totalExpenses") AS "totalExpenses",
+          SUM(r."totalIncome") - SUM(r."totalExpenses") AS "netIncome",
+          now()::date AS "period"
+        FROM public."Report" r
+        INNER JOIN public."Coop" c 
           ON c.id = r."coopId"
-          WHERE r."jenis" = 'TOTAL'
-          ORDER BY c.nik ASC`;
+        GROUP BY c.id, r."coopId", c.nik, c."name", date_trunc('month', r."transDate")
+        ORDER BY c.nik ASC;
+      `;
       }
 
       if (coopId && report) {
-        return report.filter(x => x.coopId == Number(coopId));
+        return report.filter((x) => x.coopId == Number(coopId));
       }
 
       return report;

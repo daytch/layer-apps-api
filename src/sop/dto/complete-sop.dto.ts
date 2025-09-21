@@ -13,7 +13,7 @@ export class CompleteDto {
   @ApiProperty()
   @IsNumber()
   coopId: number;
-  
+
   @ApiProperty()
   @IsNumber()
   feedId: number;

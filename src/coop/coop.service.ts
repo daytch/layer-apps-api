@@ -6,7 +6,7 @@ import { Coop } from '@prisma/client';
 
 @Injectable()
 export class CoopService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   generateNIK = (total: number, code: string) => {
     return `${total + 1}CK${code}`;

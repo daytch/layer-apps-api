@@ -33,23 +33,26 @@ import { ReportUploadDto } from 'src/cashflow/dto/reportUpload.dto';
 @ApiTags('Cashflow')
 @Controller('cashflow')
 export class CashflowController {
-  constructor(private readonly cashflowService: CashflowService) { }
-  
+  constructor(private readonly cashflowService: CashflowService) {}
+
   @ApiQuery({
-    name: "coopId",
+    name: 'coopId',
     type: Number,
-    description: "Id kandang yang dicari.",
-    required: false
+    description: 'Id kandang yang dicari.',
+    required: false,
   })
   @ApiQuery({
-    name: "period",
+    name: 'period',
     type: Date,
-    description: "Periode laporan yang dicari.",
-    required: false
+    description: 'Periode laporan yang dicari.',
+    required: false,
   })
   @Get('/report-income')
-  async getReportNetIncome(@Query('coopId') coopId?: number,@Query('period') period?: Date) {
-    return await this.cashflowService.getReportNetIncome(coopId,period)
+  async getReportNetIncome(
+    @Query('coopId') coopId?: number,
+    @Query('period') period?: Date,
+  ) {
+    return await this.cashflowService.getReportNetIncome(coopId, period);
   }
 
   @Post()

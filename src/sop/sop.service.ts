@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateSopDto } from './dto/create-sop.dto';
 import { UpdateSopDto } from './dto/update-sop.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -19,7 +23,7 @@ export class SopService {
   constructor(
     private usersService: UsersService,
     private readonly prisma: PrismaService,
-  ) { }
+  ) {}
 
   create(createSopDto: CreateSopDto) {
     return this.prisma.sOP.create({ data: createSopDto });
@@ -28,10 +32,10 @@ export class SopService {
   async findAll(roleId: string) {
     const listSOP: any = roleId
       ? await this.prisma.sOP.findMany({
-        where: {
-          roleId: Number(roleId),
-        },
-      })
+          where: {
+            roleId: Number(roleId),
+          },
+        })
       : await this.prisma.sOP.findMany();
     return listSOP;
   }
@@ -79,12 +83,13 @@ export class SopService {
           if (!completeDto.qty || completeDto.qty < 1) {
             throw new BadRequestException('Something went wrong', {
               cause: new Error(),
-              description: 'Jumlah Pakan harus diisi dan nilainya harus lebih dari 0 (nol).',
+              description:
+                'Jumlah Pakan harus diisi dan nilainya harus lebih dari 0 (nol).',
             });
           }
           await this.prisma.feedsMedicines.update({
             where: { id: completeDto.feedId },
-            data: { quantity: { decrement: completeDto.qty } }
+            data: { quantity: { decrement: completeDto.qty } },
           });
         }
         await this.prisma.progressSOP.update({

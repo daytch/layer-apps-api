@@ -14,46 +14,61 @@ import { UserCoop } from './seeds/usercoop';
 const prisma = new PrismaClient();
 
 async function main() {
-  // create roles
+  console.log('🌱 Start seeding...');
+
+  // 1. Role
   const role = new Role();
   await role.seedData();
+  console.log('✅ Roles seeded');
 
-  // create menu
+  // 2. Menu
   const menu = new Menu();
   await menu.seedData();
+  console.log('✅ Menus seeded');
 
-  // create roleMenu
+  // 3. RoleMenu (needs role + menu)
   const rolemenu = new Rolemenu();
   await rolemenu.seedData();
+  console.log('✅ RoleMenus seeded');
 
-  // create kandang / Coop
+  // 4. Coop
   const coop = new Coop();
-  await coop.seedData();
+  const coopData = await coop.seedData();
+  console.log('✅ Coops seeded');
 
-  // create user
+  // 5. User
   const user = new User();
-  await user.seedData();
+  const userData = await user.seedData();
+  console.log('✅ Users seeded');
 
-  // create userCoop
-  const userCoop = new UserCoop();
-  await userCoop.seedData();
+  // 6. UserCoop (needs user + coop)
+  if (userData?.id && coopData?.id) {
+    const userCoop = new UserCoop();
+    await userCoop.seedData(userData.id, coopData.id);
+    console.log('✅ UserCoops seeded');
+  } else {
+    console.warn('⚠️ Skip UserCoop seeding: user/coop missing');
+  }
 
-  // SOP
+  // 7. SOP
   const sop = new SOP();
   await sop.seedData();
+  console.log('✅ SOPs seeded');
 
-  //medicine
+  // 8. Medicine
   const medicine = new Medicine();
   await medicine.seedData();
+  console.log('✅ Medicines seeded');
+
+  console.log('🎉 Seeding finished.');
 }
 
 // execute the main function
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('❌ Seeding failed:', e);
     process.exit(1);
   })
   .finally(async () => {
-    // close Prisma Client at the end
     await prisma.$disconnect();
   });

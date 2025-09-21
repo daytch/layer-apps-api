@@ -17,7 +17,7 @@ export class CreateSopDto {
   @ApiProperty()
   @IsString()
   time: string;
-  
+
   @ApiProperty()
   @IsBoolean()
   isReduceStock: boolean;
