@@ -21,9 +21,28 @@ jobs:
           passphrase: ${{ secrets.VPS_SSH_PASSPHRASE }}
           port: 22222
           script: |
+            set -e
+
+            echo ">>> Load NVM"
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+            echo ">>> Pakai Node.js default (22.19.0)"
+            nvm use default
+
+            echo ">>> Masuk ke project directory"
             cd /home/daytch/dev/layer-apps-api
+
+            echo ">>> Update branch dev"
             git fetch origin dev
             git reset --hard origin/dev
-            npm install --frozen-lockfile
+
+            echo ">>> Install dependencies"
+            npm ci
+
+            echo ">>> Build project"
             npm run build
-            pm2 restart dev-api
+
+            echo ">>> Restart pm2 service"
+            pm2 restart dev-api || pm2 start dist/src/main.js --name dev-api
