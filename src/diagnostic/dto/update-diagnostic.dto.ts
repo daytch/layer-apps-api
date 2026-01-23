@@ -1,4 +1,8 @@
 import { PartialType } from '@nestjs/swagger';
 import { CreateDiagnosticDto } from './create-diagnostic.dto';
+import { ApiProperty } from '@nestjs/swagger';
 
-export class UpdateDiagnosticDto extends PartialType(CreateDiagnosticDto) {}
+export class UpdateDiagnosticDto extends PartialType(CreateDiagnosticDto) {
+  @ApiProperty()
+  reporter: string;
+}

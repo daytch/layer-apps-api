@@ -7,18 +7,10 @@ export class CreateCashflowDto {
   periode: Date;
 
   @ApiProperty()
-  @IsDate()
-  trans_date: Date;
-
-  @ApiProperty()
   @IsString()
   tipe: string;
 
   @ApiProperty()
   @IsNumber()
   nominal: number;
-
-  @ApiProperty()
-  @IsNumber()
-  total: number;
 }

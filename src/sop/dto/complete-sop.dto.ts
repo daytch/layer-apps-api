@@ -9,4 +9,16 @@ export class CompleteDto {
   @ApiProperty()
   @IsNumber()
   userId: number;
+
+  @ApiProperty()
+  @IsNumber()
+  coopId: number;
+
+  @ApiProperty()
+  @IsNumber()
+  feedId: number;
+
+  @ApiProperty()
+  @IsNumber()
+  qty: number;
 }

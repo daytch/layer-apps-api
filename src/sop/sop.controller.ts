@@ -3,10 +3,11 @@ import {
   Get,
   Post,
   Body,
-  Patch,
+  Put,
   Param,
   Delete,
   Query,
+  Request,
 } from '@nestjs/common';
 import { SopService } from './sop.service';
 import { CreateSopDto } from './dto/create-sop.dto';
@@ -14,12 +15,16 @@ import { UpdateSopDto } from './dto/update-sop.dto';
 import { CompleteDto } from './dto/complete-sop.dto';
 import { ApiBearerAuth, ApiTags, ApiQuery } from '@nestjs/swagger';
 import { Public } from '../auth/constants';
+import { CronsService } from 'src/crons/crons.service';
 
 @ApiBearerAuth()
 @ApiTags('SOP')
 @Controller('sop')
 export class SopController {
-  constructor(private readonly sopService: SopService) {}
+  constructor(
+    private readonly sopService: SopService,
+    private readonly cronService: CronsService,
+  ) {}
 
   @Post()
   create(@Body() createSopDto: CreateSopDto) {
@@ -37,12 +42,7 @@ export class SopController {
     return this.sopService.findOne(+id);
   }
 
-  @Get(':roleId')
-  findByRoleId(@Param('roleId') roleId: string) {
-    return this.sopService.findByRoleId(+roleId);
-  }
-
-  @Patch(':id')
+  @Put(':id')
   update(@Param('id') id: string, @Body() updateSopDto: UpdateSopDto) {
     return this.sopService.update(+id, updateSopDto);
   }
@@ -65,5 +65,15 @@ export class SopController {
   @Get('/progress/:roleId/:date')
   getProgress(@Param('roleId') roleId: string, @Param('date') date: string) {
     return this.sopService.getProgressAllEmployee(roleId, date);
+  }
+
+  @Get('/getsopbyuser/:coopId')
+  async getSOPByUser(@Request() req, @Param('coopId') coopId: string) {
+    return await this.sopService.getSOPByUser(req.user, coopId);
+  }
+
+  @Post('/run-scheduler')
+  runScheduler() {
+    return this.cronService.handleCron();
   }
 }

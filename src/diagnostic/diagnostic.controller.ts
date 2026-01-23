@@ -3,14 +3,19 @@ import {
   Get,
   Post,
   Body,
-  Patch,
+  Put,
   Param,
   Delete,
+  Query,
+  Request,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { DiagnosticService } from './diagnostic.service';
 import { CreateDiagnosticDto } from './dto/create-diagnostic.dto';
 import { UpdateDiagnosticDto } from './dto/update-diagnostic.dto';
 
+@ApiBearerAuth()
+@ApiTags('Diagnosa')
 @Controller('diagnostic')
 export class DiagnosticController {
   constructor(private readonly diagnosticService: DiagnosticService) {}
@@ -20,22 +25,25 @@ export class DiagnosticController {
     return this.diagnosticService.create(createDiagnosticDto);
   }
 
-  @Get(':from/:to')
-  findAll(@Param('from') from: string, @Param('to') to: string) {
-    return this.diagnosticService.findAll(from, to);
+  @Get()
+  @ApiQuery({ name: 'from', required: false })
+  @ApiQuery({ name: 'to', required: false })
+  @ApiQuery({ name: 'userId', required: false })
+  findAll(
+    @Query('from') from: string,
+    @Query('to') to: string,
+    @Query('userId') userId: number,
+  ) {
+    return this.diagnosticService.findAll(from, to, userId);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.diagnosticService.findOne(+id);
-  }
-
-  @Patch(':id')
+  @Put(':id')
   update(
     @Param('id') id: string,
     @Body() updateDiagnosticDto: UpdateDiagnosticDto,
+    @Request() req,
   ) {
-    return this.diagnosticService.update(+id, updateDiagnosticDto);
+    return this.diagnosticService.update(+id, updateDiagnosticDto, req.user);
   }
 
   @Delete(':id')

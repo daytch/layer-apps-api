@@ -19,6 +19,10 @@ import { SopModule } from './sop/sop.module';
 import { CronsModule } from './crons/crons.module';
 import { ConfigModule } from '@nestjs/config';
 import { DiagnosticModule } from './diagnostic/diagnostic.module';
+import { FeedsmedicinesModule } from './feedsmedicines/feedsmedicines.module';
+import { EggModule } from './egg/egg.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { NotificationModule } from './notification/notification.module';
 import configuration from './configs/configuration';
 
 @Module({
@@ -42,6 +46,10 @@ import configuration from './configs/configuration';
     CashflowModule,
     SopModule,
     DiagnosticModule,
+    FeedsmedicinesModule,
+    EggModule,
+    DashboardModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [

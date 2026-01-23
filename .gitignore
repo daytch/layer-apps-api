@@ -2,9 +2,11 @@
 /dist
 /node_modules
 /build
-
+/public/images
+/public/docs
 # prisma
-/prisma/migrations
+# /prisma/migrations
+yarn.lock
 
 # Logs
 logs

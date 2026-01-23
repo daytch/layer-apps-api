@@ -8,5 +8,6 @@ import { AuthGuard } from '../auth/auth.guard';
   imports: [PrismaModule],
   controllers: [CoopController],
   providers: [CoopService, { provide: 'APP_GUARD', useClass: AuthGuard }],
+  exports: [CoopService],
 })
 export class CoopModule {}

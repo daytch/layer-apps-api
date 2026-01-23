@@ -1,12 +1,29 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateSopDto } from './dto/create-sop.dto';
 import { UpdateSopDto } from './dto/update-sop.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CompleteDto } from './dto/complete-sop.dto';
+import * as dayjs from 'dayjs';
+import * as utc from 'dayjs/plugin/utc';
+import * as timezone from 'dayjs/plugin/timezone';
+import { IPayload } from 'src/auth/auth.service';
+import { UsersService } from 'src/users/users.service';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.tz.setDefault('UTC');
+//dayjs.tz.setDefault('Asia/Jakarta');
 
 @Injectable()
 export class SopService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private usersService: UsersService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   create(createSopDto: CreateSopDto) {
     return this.prisma.sOP.create({ data: createSopDto });
@@ -27,14 +44,6 @@ export class SopService {
     return this.prisma.sOP.findUnique({ where: { id } });
   }
 
-  findByRoleId(roleId: number) {
-    return this.prisma.sOP.findMany({
-      where: {
-        roleId,
-      },
-    });
-  }
-
   update(id: number, updateSopDto: UpdateSopDto) {
     return this.prisma.sOP.update({
       where: { id },
@@ -49,31 +58,82 @@ export class SopService {
   }
 
   async complete(completeDto: CompleteDto) {
-    const progress = await this.prisma.progressSOP.findMany({
-      where: {
-        userId: completeDto.userId,
-        createdAt: { gte: new Date() },
-      },
-    });
-    const detail = progress.length > 0 ? progress[0].detail : '';
-    if (detail) {
-      detail[completeDto.sopId] = true;
-      console.log(detail);
-      return this.prisma.progressSOP.update({
-        where: { id: progress[0].id },
-        data: { detail },
-      });
+    try {
+      if (!completeDto.sopId || !completeDto.userId || !completeDto.coopId) {
+        return 'SOP Id, User Id dan Id Kandang wajib diisi.';
+      }
+      const progress: { id: number; detail: any }[] = await this.prisma
+        .$queryRaw`select ps."id", ps."detail" from "ProgressSOP" ps where (ps."createdAt" AT TIME ZONE 'GMT')::date=CAST(${dayjs().utc().format('YYYY-MM-DD')} as DATE) and ps."userId"=${completeDto.userId} and ps."coopId"=${Number(completeDto.coopId)}`;
+
+      const detail = progress.length > 0 ? progress[0].detail : '';
+      if (detail) {
+        const sop = await this.prisma.sOP.findUnique({
+          where: { id: completeDto.sopId },
+        });
+        detail[completeDto.sopId] = true;
+        console.log(detail);
+        // reduce feeds stock
+        if (sop.isReduceStock) {
+          if (!completeDto.feedId) {
+            throw new BadRequestException('Something went wrong', {
+              cause: new Error(),
+              description: 'Jenis Pakan harus dipilih.',
+            });
+          }
+          if (!completeDto.qty || completeDto.qty < 1) {
+            throw new BadRequestException('Something went wrong', {
+              cause: new Error(),
+              description:
+                'Jumlah Pakan harus diisi dan nilainya harus lebih dari 0 (nol).',
+            });
+          }
+          await this.prisma.feedsMedicines.update({
+            where: { id: completeDto.feedId },
+            data: { quantity: { decrement: completeDto.qty } },
+          });
+        }
+        await this.prisma.progressSOP.update({
+          where: { id: progress[0].id },
+          data: { detail },
+        });
+        sop['status'] = true;
+        return sop;
+      }
+      return 'field not found';
+    } catch (error) {
+      return error;
     }
-    return 'field not found';
   }
 
   async getProgressAllEmployee(roleId: string, date: string) {
     const progress = await this.prisma
       .$queryRawUnsafe(`SELECT u."id", u."name", ps."detail", ps."createdAt" as date
-    FROM "ProgressSOP" ps 
-    join "Users" u on ps."userId"=u."id" 
-    where ps."roleId"=${roleId} and to_char(ps."createdAt",'YYYY-MM-DD') = '${date}'`);
+    FROM "ProgressSOP" ps
+    inner join "Users" u on ps."userId"=u."id" 
+    where u."roleId"=${roleId} and to_char(ps."createdAt",'YYYY-MM-DD') = '${date}'`);
 
     return progress;
+  }
+
+  async getSOPByUser(payload: IPayload, coopId: string) {
+    try {
+      const user = await this.usersService.findOneById(payload.uid);
+      if (!user) {
+        throw new UnauthorizedException();
+      }
+
+      const SOP = await this.prisma.sOP.findMany({
+        where: { roleId: user?.roleId },
+      });
+      const progressSOP = await this.prisma
+        .$queryRaw`select ps."id", ps."detail" from "ProgressSOP" ps where (ps."createdAt" AT TIME ZONE 'GMT')::date=CAST(${dayjs().utc().format('YYYY-MM-DD')} as DATE) and ps."userId"=${user.id} and ps."coopId"=${Number(coopId)}`;
+
+      const detail = progressSOP[0]?.detail;
+      return SOP.map((item) => {
+        return { ...item, status: detail[item.id] };
+      });
+    } catch (error) {
+      return [];
+    }
   }
 }

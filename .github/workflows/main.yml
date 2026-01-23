@@ -1,0 +1,48 @@
+name: CI/CD Deploy
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          passphrase: ${{ secrets.VPS_SSH_PASSPHRASE }}
+          port: 22222
+          script: |
+            set -e
+
+            echo ">>> Load NVM"
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+            echo ">>> Pakai Node.js default (22.19.0)"
+            nvm use default
+
+            echo ">>> Masuk ke project directory"
+            cd /home/daytch/dev/layer-apps-api
+
+            echo ">>> Update branch dev"
+            git fetch origin dev
+            git reset --hard origin/dev
+
+            echo ">>> Install dependencies"
+            npm ci
+
+            echo ">>> Build project"
+            npm run build
+
+            echo ">>> Restart pm2 service"
+            pm2 restart dev-api || pm2 start dist/src/main.js --name dev-api
