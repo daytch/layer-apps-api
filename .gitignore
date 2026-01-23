@@ -6,6 +6,7 @@
 /public/docs
 # prisma
 # /prisma/migrations
+yarn.lock
 
 # Logs
 logs
