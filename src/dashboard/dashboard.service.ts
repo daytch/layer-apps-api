@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 import { ParamGetAllData } from 'src/egg/dto/ParamsGetAllData.dto';
 import { CashflowService } from 'src/cashflow/cashflow.service';
 

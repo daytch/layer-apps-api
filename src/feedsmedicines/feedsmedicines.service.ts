@@ -3,7 +3,12 @@ import { CreateFeedsmedicineDto } from './dto/create-feedsmedicine.dto';
 import { UpdateFeedsmedicineDto } from './dto/update-feedsmedicine.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ConsumptionDto } from './dto/consumption.dto';
-import * as dayjs from 'dayjs';
+const dayjs = require('dayjs');
+const utc = require('dayjs/plugin/utc');
+const timezone = require('dayjs/plugin/timezone');
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 @Injectable()
 export class FeedsmedicinesService {

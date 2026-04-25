@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CoopService } from 'src/coop/coop.service';
 import { PrismaService } from 'src/prisma/prisma.service';
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 import * as Excel from 'exceljs';
 import { Prisma } from '@prisma/client';
 import { greenCol } from 'src/egg/upload';
@@ -124,6 +124,78 @@ export class EggService {
 
     const eggs = await this.prisma.eggProduction.findMany({ where });
     return eggs;
+  }
+
+  async create(dto: CreateEggProductionDto) {
+    const prodPieceN = dto.prodPieceN ?? 0;
+    const prodPieceP = dto.prodPieceP ?? 0;
+    const prodPieceBS = dto.prodPieceBS ?? 0;
+
+    const prodWeightN = Number(dto.prodWeightN ?? 0);
+    const prodWeightP = Number(dto.prodWeightP ?? 0);
+    const prodWeightBS = Number(dto.prodWeightBS ?? 0);
+
+    const pop = dto.pop ?? 0;
+    const feedWeight = dto.feedWeight ?? 0;
+
+    /** =========================
+     * CALCULATION
+     * ========================= */
+
+    const prodTotalPiece = prodPieceN + prodPieceP + prodPieceBS;
+
+    const prodTotalWeight = prodWeightN + prodWeightP + prodWeightBS;
+
+    const HD = pop > 0 ? (prodTotalPiece / pop) * 100 : 0;
+
+    const EggWeight = prodTotalPiece > 0 ? prodTotalWeight / prodTotalPiece : 0;
+
+    const EggMass = pop > 0 ? prodTotalWeight / pop : 0;
+
+    const FCR = prodTotalWeight > 0 ? feedWeight / prodTotalWeight : 0;
+
+    /** =========================
+     * SAVE
+     * ========================= */
+
+    const data = await this.prisma.eggProduction.create({
+      data: {
+        coopId: dto.coopId,
+        transDate: new Date(dto.transDate),
+
+        ageInDay: dto.ageInDay,
+        ageInWeek: dto.ageInWeek,
+
+        pop: dto.pop,
+        m: dto.m,
+        afk: dto.afk,
+        sell: dto.sell,
+        finalPop: dto.finalPop,
+
+        feedType: dto.feedType,
+        feedWeight: dto.feedWeight,
+        feedFIT: dto.feedFIT,
+
+        prodPieceN,
+        prodPieceP,
+        prodPieceBS,
+        prodTotalPiece,
+
+        prodWeightN,
+        prodWeightP,
+        prodWeightBS,
+        prodTotalWeight,
+
+        HD,
+        FCR,
+        EggWeight,
+        EggMass,
+
+        OVK: dto.OVK,
+      },
+    });
+
+    return data;
   }
 
   async delete(data: DeleteEggs) {

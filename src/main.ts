@@ -1,39 +1,39 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { SwaggerModule, DocumentBuilder, OpenAPIObject } from '@nestjs/swagger';
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from '@nestjs/platform-fastify';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
+import cors from '@fastify/cors';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  const configService = app.get<ConfigService>(ConfigService);
-  const port = configService.get('PORT');
-  console.log('port: ', port);
-  // Use DocumentBuilder to create a new Swagger document configuration
+  const app = await NestFactory.create<NestFastifyApplication>(
+    AppModule,
+    new FastifyAdapter(),
+  );
+
+  const configService = app.get(ConfigService);
+  const port = configService.get<number>('PORT') || 3000;
+
+  await app.register(cors);
+
   const config = new DocumentBuilder()
-    .addBearerAuth()
     .setTitle('Layer Apps API')
-    .setDescription('Layer Apps Description')
+    .setDescription('Layer Apps API Documentation')
     .setVersion('0.1')
+    .addBearerAuth()
     .build();
 
-  // Create a Swagger document using the application instance and the document configuration
   const document = SwaggerModule.createDocument(app, config);
 
-  Object.values((document as OpenAPIObject).paths).forEach((path: any) => {
-    Object.values(path).forEach((method: any) => {
-      if (
-        Array.isArray(method.security) &&
-        method.security.includes('public')
-      ) {
-        method.security = [];
-      }
-    });
-  });
-  // Setup Swagger module with the application instance and the Swagger document
   SwaggerModule.setup('api', app, document);
 
-  app.enableCors();
-  console.log('port : ', port);
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
+
+  console.log(`🚀 Server running on http://localhost:${port}`);
+  console.log(`📚 Swagger: http://localhost:${port}/api`);
 }
+
 bootstrap();

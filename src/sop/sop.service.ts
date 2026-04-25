@@ -7,9 +7,9 @@ import { CreateSopDto } from './dto/create-sop.dto';
 import { UpdateSopDto } from './dto/update-sop.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CompleteDto } from './dto/complete-sop.dto';
-import * as dayjs from 'dayjs';
-import * as utc from 'dayjs/plugin/utc';
-import * as timezone from 'dayjs/plugin/timezone';
+const dayjs = require('dayjs');
+const utc = require('dayjs/plugin/utc');
+const timezone = require('dayjs/plugin/timezone');
 import { IPayload } from 'src/auth/auth.service';
 import { UsersService } from 'src/users/users.service';
 

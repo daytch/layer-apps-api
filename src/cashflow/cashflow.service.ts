@@ -3,13 +3,14 @@ import { CreateCashflowDto } from './dto/create-cashflow.dto';
 import { UpdateCashflowDto } from './dto/update-cashflow.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { IPayload } from 'src/auth/auth.service';
-import * as dayjs from 'dayjs';
 import * as Excel from 'exceljs';
-import * as utc from 'dayjs/plugin/utc';
-import * as timezone from 'dayjs/plugin/timezone';
-import { FileUploadDto } from 'src/egg/dto/fileUpload.dto';
+const dayjs = require('dayjs');
+const utc = require('dayjs/plugin/utc');
+const timezone = require('dayjs/plugin/timezone');
+// import { FileUploadDto } from 'src/egg/dto/fileUpload.dto';
 import { CoopService } from 'src/coop/coop.service';
 import { ReportUploadDto } from './dto/reportUpload.dto';
+import { Prisma } from '@prisma/client';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -148,7 +149,11 @@ export class CashflowService {
   async update(id: number, updateCashflowDto: UpdateCashflowDto) {
     await this.prisma.cashflow.update({
       where: { id },
-      data: updateCashflowDto,
+      data: {
+        periode: new Date(updateCashflowDto.periode),
+        tipe: updateCashflowDto.tipe,
+        nominal: updateCashflowDto.nominal,
+      },
     });
 
     return await this.prisma.$executeRaw`with cte_sum as (
@@ -534,8 +539,17 @@ export class CashflowService {
 
       if (period) {
         const p = new Date(period);
-        const startDate = new Date(p.getFullYear(), p.getMonth(), 1);
-        const endDate = new Date(p.getFullYear(), p.getMonth() + 1, 1);
+
+        // UTC-safe month range
+        const startDate = new Date(
+          Date.UTC(p.getFullYear(), p.getMonth() + 1, 1),
+        );
+        const endDate = new Date(
+          Date.UTC(p.getFullYear(), p.getMonth() + 2, 1),
+        );
+        const coopFilter = coopId
+          ? Prisma.sql`AND r."coopId" = ${Number(coopId)}`
+          : Prisma.empty;
 
         report = await this.prisma.$queryRaw`
         SELECT 
@@ -544,16 +558,23 @@ export class CashflowService {
           c.nik,
           c."name",
           date_trunc('month', r."transDate")::date AS "transDate",
-          SUM(r."totalIncome") AS "totalIncome",
-          SUM(r."totalExpenses") AS "totalExpenses",
-          SUM(r."totalIncome") - SUM(r."totalExpenses") AS "netIncome",
-          ${p.toISOString().substring(0, 10)} AS "period"
+          SUM(COALESCE(r."totalIncome", 0))::int AS "totalIncome",
+          SUM(COALESCE(r."totalExpenses", 0))::int AS "totalExpenses",
+          SUM(COALESCE(r."totalIncome", 0))::int 
+            - SUM(COALESCE(r."totalExpenses", 0))::int AS "netIncome",
+          ${startDate}::date AS "period"
         FROM public."Report" r
         INNER JOIN public."Coop" c 
           ON c.id = r."coopId"
         WHERE r."transDate" >= ${startDate}
           AND r."transDate" < ${endDate}
-        GROUP BY c.id, r."coopId", c.nik, c."name", date_trunc('month', r."transDate")
+          ${coopFilter}
+        GROUP BY 
+          c.id, 
+          r."coopId", 
+          c.nik, 
+          c."name", 
+          date_trunc('month', r."transDate")
         ORDER BY c.nik ASC;
       `;
       } else {
@@ -564,20 +585,22 @@ export class CashflowService {
           c.nik,
           c."name",
           date_trunc('month', r."transDate")::date AS "transDate",
-          SUM(r."totalIncome") AS "totalIncome",
-          SUM(r."totalExpenses") AS "totalExpenses",
-          SUM(r."totalIncome") - SUM(r."totalExpenses") AS "netIncome",
+          SUM(COALESCE(r."totalIncome", 0))::int AS "totalIncome",
+          SUM(COALESCE(r."totalExpenses", 0))::int AS "totalExpenses",
+          SUM(COALESCE(r."totalIncome", 0))::int 
+            - SUM(COALESCE(r."totalExpenses", 0))::int AS "netIncome",
           now()::date AS "period"
         FROM public."Report" r
         INNER JOIN public."Coop" c 
           ON c.id = r."coopId"
-        GROUP BY c.id, r."coopId", c.nik, c."name", date_trunc('month', r."transDate")
+        GROUP BY 
+          c.id, 
+          r."coopId", 
+          c.nik, 
+          c."name", 
+          date_trunc('month', r."transDate")
         ORDER BY c.nik ASC;
       `;
-      }
-
-      if (coopId && report) {
-        return report.filter((x) => x.coopId == Number(coopId));
       }
 
       return report;

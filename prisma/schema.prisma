@@ -71,23 +71,6 @@ model Users {
   role            Role              @relation(fields: [roleId], references: [id])
 }
 
-model Coop {
-  id              Int               @id @default(autoincrement())
-  name            String
-  nik             String            @unique
-  address         String
-  createdAt       DateTime          @default(now()) @db.Timestamptz(3)
-  updateAt        DateTime          @updatedAt @db.Timestamptz(3)
-  isActive        Boolean           @default(true)
-  CoopDiagnostics CoopDiagnostics[]
-  EggProduction   EggProduction[]
-  FeedsMedicines  FeedsMedicines[]
-  ProgressSOP     ProgressSOP[]
-  Report          Report[]
-  ReportTemp      ReportTemp[]
-  UserCoop        UserCoop[]
-}
-
 model Cashflow {
   id         Int      @id @default(autoincrement())
   periode    DateTime @db.Date
@@ -250,6 +233,23 @@ model Notification {
   updatedAt    DateTime        @updatedAt @db.Timestamptz(3)
   diagnostic   CoopDiagnostics @relation(fields: [diagnosticId], references: [id])
   listener     Users           @relation(fields: [listenerId], references: [id])
+}
+
+model Coop {
+  id              Int               @id @default(autoincrement())
+  name            String
+  nik             String            @unique
+  address         String
+  createdAt       DateTime          @default(now()) @db.Timestamptz(3)
+  updateAt        DateTime          @updatedAt @db.Timestamptz(3)
+  isActive        Boolean           @default(true)
+  CoopDiagnostics CoopDiagnostics[]
+  EggProduction   EggProduction[]
+  FeedsMedicines  FeedsMedicines[]
+  ProgressSOP     ProgressSOP[]
+  Report          Report[]
+  ReportTemp      ReportTemp[]
+  UserCoop        UserCoop[]
 }
 
 model Report {

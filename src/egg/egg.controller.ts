@@ -20,6 +20,7 @@ import { ResponseUpload } from './dto/ResponseUpload.dto';
 import { ParamGetAllData } from './dto/ParamsGetAllData.dto';
 import { DeleteEggs } from './dto/DeleteEggs.dto';
 import { UpdateEggs } from './dto/UpdateEggs.dto';
+import { CreateEggProductionDto } from './dto/create-egg-production.dto';
 
 @ApiBearerAuth()
 @ApiTags('Egg')
@@ -70,5 +71,10 @@ export class EggController {
   @Post('update')
   async update(@Body() data: UpdateEggs[]) {
     return await this.eggService.update(data);
+  }
+
+  @Post()
+  async create(@Body() dto: CreateEggProductionDto) {
+    return this.eggService.create(dto);
   }
 }
