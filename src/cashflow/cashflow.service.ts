@@ -7,7 +7,7 @@ import * as dayjs from 'dayjs';
 import * as Excel from 'exceljs';
 import * as utc from 'dayjs/plugin/utc';
 import * as timezone from 'dayjs/plugin/timezone';
-import { FileUploadDto } from 'src/egg/dto/fileUpload.dto';
+// import { FileUploadDto } from 'src/egg/dto/fileUpload.dto';
 import { CoopService } from 'src/coop/coop.service';
 import { ReportUploadDto } from './dto/reportUpload.dto';
 
@@ -43,8 +43,8 @@ const month = {
   desember: '12',
 };
 
-const monthRegex =
-  /\b(januari|februari|maret|april|mei|juni|juli|agustus|september|oktober|november|desember)\b/;
+// const monthRegex =
+//   /\b(januari|februari|maret|april|mei|juni|juli|agustus|september|oktober|november|desember)\b/;
 
 const convertValue = {
   string: (e) => (e ? e.toString() : null),
@@ -60,7 +60,7 @@ function getValue(data: any, tipe: string) {
       : typeof data === 'object'
         ? convertValue[tipe](data?.result)
         : convertValue[tipe](data);
-  } catch (error) {
+  } catch {
     return convertValue[tipe](data);
   }
 }

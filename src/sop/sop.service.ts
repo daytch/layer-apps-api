@@ -132,7 +132,7 @@ export class SopService {
       return SOP.map((item) => {
         return { ...item, status: detail[item.id] };
       });
-    } catch (error) {
+    } catch {
       return [];
     }
   }

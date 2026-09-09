@@ -13,15 +13,20 @@ export class LoggerInterceptor implements NestInterceptor {
     const req = context.switchToHttp().getRequest();
     const method = req.method;
     const url = req.url;
+
     console.log(`Method: ${method}, URL: ${url}`);
+
     const now = Date.now();
+
     return next.handle().pipe(
       map((data) => {
         Logger.log(
           `${method} ${url} ${Date.now() - now}ms`,
           context.getClass().name,
-        ),
-          console.log('After...');
+        );
+
+        console.log('After...');
+
         return data;
       }),
     );

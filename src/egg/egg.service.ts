@@ -66,7 +66,7 @@ function getValue(data: any, tipe: string) {
       : typeof data === 'object'
         ? convertValue[tipe](data?.result)
         : convertValue[tipe](data);
-  } catch (error) {
+  } catch {
     return convertValue[tipe](data);
   }
 }
@@ -229,7 +229,7 @@ export class EggService {
                 ? tValue.result
                 : this.stringToDate(tValue.result.toString())
               : tValue;
-        } catch (err) {
+        } catch {
           throw new BadRequestException('Something went wrong', {
             cause: new Error(),
             description: `Tanggal pada row ke ${index + 1} dengan isi ${tValue} tidak valid, harap cek kembali data anda.`,
@@ -1265,6 +1265,8 @@ export class EggService {
           break;
       }
       return { message: 'Data telah berhasil disimpan.' };
-    } catch (error) {}
+    } catch (error: any) {
+      throw new Error(error.message);
+    }
   }
 }

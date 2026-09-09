@@ -33,7 +33,7 @@ export class FeedsmedicinesService {
         };
         return await this.prisma.feedsMedicines.create({ data: dt });
       }
-    } catch (error) {
+    } catch (error: any) {
       return error?.message
         ? error.message
         : error?.stack
@@ -128,7 +128,7 @@ export class FeedsmedicinesService {
         where: { id },
         data: { isActive: false },
       });
-    } catch (error) {}
+    } catch {}
   }
 
   async getReport(start_date?: Date, end_date?: Date, coop_id?: number) {
