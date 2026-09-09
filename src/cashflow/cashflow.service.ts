@@ -3,11 +3,10 @@ import { CreateCashflowDto } from './dto/create-cashflow.dto';
 import { UpdateCashflowDto } from './dto/update-cashflow.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { IPayload } from 'src/auth/auth.service';
-import * as dayjs from 'dayjs';
 import * as Excel from 'exceljs';
-import * as utc from 'dayjs/plugin/utc';
-import * as timezone from 'dayjs/plugin/timezone';
-// import { FileUploadDto } from 'src/egg/dto/fileUpload.dto';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import { CoopService } from 'src/coop/coop.service';
 import { ReportUploadDto } from './dto/reportUpload.dto';
 
