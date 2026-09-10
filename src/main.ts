@@ -8,7 +8,7 @@ async function bootstrap() {
 
   // Konfigurasi CORS dengan opsi eksplisit untuk mendukung credentials & multi-origin jika diperlukan
   app.enableCors({
-    origin: true, // Mengizinkan semua origin (atau spesifikasikan array domain seperti ['https://layer-apps.vercel.app'])
+    origin: ['https://layer-apps.vercel.app', 'http://localhost:3000'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
