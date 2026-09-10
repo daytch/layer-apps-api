@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CoopService } from 'src/coop/coop.service';
 import { PrismaService } from 'src/prisma/prisma.service';
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 import * as Excel from 'exceljs';
 import { Prisma } from '@prisma/client';
 import { greenCol } from 'src/egg/upload';

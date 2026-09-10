@@ -3,7 +3,7 @@ import { CreateFeedsmedicineDto } from './dto/create-feedsmedicine.dto';
 import { UpdateFeedsmedicineDto } from './dto/update-feedsmedicine.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ConsumptionDto } from './dto/consumption.dto';
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class FeedsmedicinesService {
