@@ -16,7 +16,6 @@ import { UsersService } from 'src/users/users.service';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.tz.setDefault('UTC');
-//dayjs.tz.setDefault('Asia/Jakarta');
 
 @Injectable()
 export class SopService {
