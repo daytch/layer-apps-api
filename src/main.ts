@@ -8,9 +8,10 @@ async function bootstrap() {
 
   // Konfigurasi CORS dengan opsi eksplisit untuk mendukung credentials & multi-origin jika diperlukan
   app.enableCors({
-    origin: ['https://layer-apps.vercel.app', 'http://localhost:3000'],
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    origin: true,
     credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
   const configService = app.get(ConfigService);
