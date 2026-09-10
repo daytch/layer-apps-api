@@ -3,7 +3,7 @@ import { Cron, /*Interval, Timeout,*/ CronExpression } from '@nestjs/schedule';
 import { UsersService } from '../users/users.service';
 import { SopService } from '../sop/sop.service';
 import { PrismaService } from '../prisma/prisma.service';
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 
 export type TProgressSOP = {
   userId: number;
