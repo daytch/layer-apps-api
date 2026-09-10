@@ -5,10 +5,19 @@ import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const configService = app.get<ConfigService>(ConfigService);
-  const port = configService.get('PORT');
-  console.log('port: ', port);
-  // Use DocumentBuilder to create a new Swagger document configuration
+
+  // Konfigurasi CORS dengan opsi eksplisit untuk mendukung credentials & multi-origin jika diperlukan
+  app.enableCors({
+    origin: true, // Mengizinkan semua origin (atau spesifikasikan array domain seperti ['https://layer-apps.vercel.app'])
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
+
+  const configService = app.get(ConfigService);
+  const port = configService.get<number>('PORT') || 3000;
+  console.log(`Application is running on port: ${port}`);
+
+  // Setup Swagger Document Configuration
   const config = new DocumentBuilder()
     .addBearerAuth()
     .setTitle('Layer Apps API')
@@ -16,9 +25,9 @@ async function bootstrap() {
     .setVersion('0.1')
     .build();
 
-  // Create a Swagger document using the application instance and the document configuration
   const document = SwaggerModule.createDocument(app, config);
 
+  // Membersihkan security 'public' pada Swagger jika ada
   Object.values((document as OpenAPIObject).paths).forEach((path: any) => {
     Object.values(path).forEach((method: any) => {
       if (
@@ -29,11 +38,10 @@ async function bootstrap() {
       }
     });
   });
-  // Setup Swagger module with the application instance and the Swagger document
+
   SwaggerModule.setup('api', app, document);
 
-  app.enableCors();
-  console.log('port : ', port);
   await app.listen(port);
 }
+
 bootstrap();
