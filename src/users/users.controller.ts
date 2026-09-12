@@ -9,11 +9,10 @@ import {
   Put,
   Delete,
   Req,
-  Res,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { editFileName, imageFileFilter } from '../utils/file-upload.utils';
+import { memoryStorage } from 'multer';
+import { imageFileFilter } from '../utils/file-upload.utils';
 import { Public } from '../auth/constants';
 import { ApiTags, ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { FileUploadDto } from './dto/fileUpload.dto';
@@ -21,26 +20,26 @@ import { UsersService } from './users.service';
 import { CreateUsersDto } from './dto/create-users.dto';
 import { UpdateUsersDto } from './dto/update-users.dto';
 import { ErrorsInterceptor } from '../interceptors/errors.interceptor';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { Request } from 'express';
-import { join } from 'path';
-import { Observable, of } from 'rxjs';
 
 @ApiBearerAuth()
 @ApiTags('Users')
 @UseInterceptors(ErrorsInterceptor)
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   @Public()
   @Post('upload')
   @UseInterceptors(
     FileInterceptor('image', {
-      storage: diskStorage({
-        destination: './public/images',
-        filename: editFileName,
-      }),
+      storage: memoryStorage(),
       fileFilter: imageFileFilter,
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB, sesuaikan kebutuhan
     }),
   )
   @ApiConsumes('multipart/form-data')
@@ -48,20 +47,15 @@ export class UsersController {
     description: 'Upload avatar profile',
     type: FileUploadDto,
   })
-  async uploadedFile(@Req() req: Request, @UploadedFile() file) {
-    const response = {
-      path: `https://${req.get('Host')}/users/${file.filename}`,
-    };
-    return response;
-  }
+  async uploadedFile(
+    @Req() req: Request,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const result = await this.cloudinaryService.uploadImage(file);
 
-  @Public()
-  @Get(':imagename')
-  seeUploadedFile(
-    @Param('imagename') imagename: string,
-    @Res() res,
-  ): Observable<object> {
-    return of(res.sendFile(join(process.cwd(), 'public/images/' + imagename)));
+    return {
+      path: result.secure_url,
+    };
   }
 
   @Public()
