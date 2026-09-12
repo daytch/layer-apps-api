@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateDiagnosticDto } from './dto/create-diagnostic.dto';
 import { UpdateDiagnosticDto } from './dto/update-diagnostic.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { IPayload } from 'src/auth/auth.service';
+import { IPayload } from '../auth/auth.service';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateFeedsmedicineDto } from './dto/create-feedsmedicine.dto';
 import { UpdateFeedsmedicineDto } from './dto/update-feedsmedicine.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { ConsumptionDto } from './dto/consumption.dto';
 import dayjs from 'dayjs';
 

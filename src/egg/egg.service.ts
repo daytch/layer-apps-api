@@ -1,13 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { CoopService } from 'src/coop/coop.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { CoopService } from '../coop/coop.service';
+import { PrismaService } from '../prisma/prisma.service';
 import dayjs from 'dayjs';
 import * as Excel from 'exceljs';
 import { Prisma } from '@prisma/client';
-import { greenCol } from 'src/egg/upload';
-import { alfaNumeric } from 'src/utils/randomizer.utils';
+import { greenCol } from '../egg/upload';
+import { alfaNumeric } from '../utils/randomizer.utils';
 import { ResponseUpload } from './dto/ResponseUpload.dto';
-import { AuthService } from 'src/auth/auth.service';
+import { AuthService } from '../auth/auth.service';
 import { ParamGetAllData } from './dto/ParamsGetAllData.dto';
 import { DeleteEggs } from './dto/DeleteEggs.dto';
 import { FileUploadDto } from './dto/fileUpload.dto';

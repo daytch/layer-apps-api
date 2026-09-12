@@ -4,7 +4,7 @@ import { UsersModule } from '../users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { jwtConstants } from './constants';
-import { RoleModule } from 'src/role/role.module';
+import { RoleModule } from '../role/role.module';
 
 @Module({
   imports: [

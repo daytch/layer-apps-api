@@ -15,7 +15,7 @@ import { UpdateSopDto } from './dto/update-sop.dto';
 import { CompleteDto } from './dto/complete-sop.dto';
 import { ApiBearerAuth, ApiTags, ApiQuery } from '@nestjs/swagger';
 import { Public } from '../auth/constants';
-import { CronsService } from 'src/crons/crons.service';
+import { CronsService } from '../crons/crons.service';
 
 @ApiBearerAuth()
 @ApiTags('SOP')

@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { DashboardController } from './dashboard.controller';
-import { PrismaModule } from 'src/prisma/prisma.module';
-import { CashflowModule } from 'src/cashflow/cashflow.module';
+import { PrismaModule } from '../prisma/prisma.module';
+import { CashflowModule } from '../cashflow/cashflow.module';
 
 @Module({
   imports: [PrismaModule, CashflowModule],

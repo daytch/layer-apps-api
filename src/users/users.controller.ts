@@ -20,7 +20,7 @@ import { FileUploadDto } from './dto/fileUpload.dto';
 import { UsersService } from './users.service';
 import { CreateUsersDto } from './dto/create-users.dto';
 import { UpdateUsersDto } from './dto/update-users.dto';
-import { ErrorsInterceptor } from 'src/interceptors/errors.interceptor';
+import { ErrorsInterceptor } from '../interceptors/errors.interceptor';
 import { Request } from 'express';
 import { join } from 'path';
 import { Observable, of } from 'rxjs';

@@ -2,12 +2,12 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateCashflowDto } from './dto/create-cashflow.dto';
 import { UpdateCashflowDto } from './dto/update-cashflow.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { IPayload } from 'src/auth/auth.service';
+import { IPayload } from '../auth/auth.service';
 import * as Excel from 'exceljs';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { CoopService } from 'src/coop/coop.service';
+import { CoopService } from '../coop/coop.service';
 import { ReportUploadDto } from './dto/reportUpload.dto';
 
 dayjs.extend(utc);

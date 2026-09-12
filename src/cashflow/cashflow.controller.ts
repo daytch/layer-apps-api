@@ -25,9 +25,9 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { multerOptions } from 'src/egg/upload';
+import { multerOptions } from '../egg/upload';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ReportUploadDto } from 'src/cashflow/dto/reportUpload.dto';
+import { ReportUploadDto } from '../cashflow/dto/reportUpload.dto';
 
 @ApiBearerAuth()
 @ApiTags('Cashflow')

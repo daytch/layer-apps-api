@@ -10,8 +10,8 @@ import { CompleteDto } from './dto/complete-sop.dto';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { IPayload } from 'src/auth/auth.service';
-import { UsersService } from 'src/users/users.service';
+import { IPayload } from '../auth/auth.service';
+import { UsersService } from '../users/users.service';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

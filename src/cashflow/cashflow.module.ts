@@ -3,7 +3,7 @@ import { CashflowService } from './cashflow.service';
 import { CashflowController } from './cashflow.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuthGuard } from '../auth/auth.guard';
-import { CoopModule } from 'src/coop/coop.module';
+import { CoopModule } from '../coop/coop.module';
 
 @Module({
   imports: [PrismaModule, CoopModule],

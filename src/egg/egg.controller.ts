@@ -15,7 +15,7 @@ import { EggService } from './egg.service';
 import { ApiTags, ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileUploadDto } from './dto/fileUpload.dto';
-import { multerOptions } from 'src/egg/upload';
+import { multerOptions } from '../egg/upload';
 import { ResponseUpload } from './dto/ResponseUpload.dto';
 import { ParamGetAllData } from './dto/ParamsGetAllData.dto';
 import { DeleteEggs } from './dto/DeleteEggs.dto';

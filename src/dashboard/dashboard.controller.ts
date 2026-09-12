@@ -1,7 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { ParamGetAllData } from 'src/egg/dto/ParamsGetAllData.dto';
+import { ParamGetAllData } from '../egg/dto/ParamsGetAllData.dto';
 
 @ApiBearerAuth()
 @ApiTags('Dashboard')
