@@ -100,7 +100,7 @@ function parseCorsOrigins(value?: string): string[] {
     return [
       'http://localhost:3000',
       'http://localhost:5173',
-      'https://layer-apps.vercel.app/',
+      'https://layer-apps.vercel.app',
     ];
   }
 
@@ -111,7 +111,13 @@ function parseCorsOrigins(value?: string): string[] {
 }
 
 export default async function handler(req: Request, res: Response) {
-  const app = await bootstrap();
-
-  return app(req, res);
+   try {
+    const app = await bootstrap();
+    return app(req, res);
+  } catch (err) {
+    console.error('Bootstrap failed:', err);
+    res.status(500).json({
+      message: 'Internal server error during initialization',
+    });
+  }
 }
