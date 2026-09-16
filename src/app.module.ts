@@ -6,9 +6,9 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { UsersService } from './users/users.service';
 import { AuthModule } from './auth/auth.module';
-import { ServeStaticModule } from '@nestjs/serve-static';
+// import { ServeStaticModule } from '@nestjs/serve-static';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { join } from 'path';
+// import { join } from 'path';
 import { RoleModule } from './role/role.module';
 import { CoopModule } from './coop/coop.module';
 import { CashflowModule } from './cashflow/cashflow.module';
@@ -38,10 +38,13 @@ import configuration from './configs/configuration';
     PrismaModule,
     AuthModule,
     UsersModule,
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'public/images'),
-      serveRoot: '/images',
-    }),
+    // ServeStaticModule.forRoot({
+    //   rootPath: join(__dirname, '..', 'public/images'),
+    //   serveRoot: '/images',
+    //   serveStaticOptions: {
+    //     fallthrough: true,
+    //   },
+    // }),
     RoleModule,
     CoopModule,
     CashflowModule,
