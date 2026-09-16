@@ -40,9 +40,12 @@ async function bootstrap() {
     });
   });
 
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('docs', app, document);
 
   await app.listen(port);
+
+  console.log(`Application: http://localhost:${port}`);
+  console.log(`Swagger: http://localhost:${port}/docs`);
 }
 
 bootstrap();
