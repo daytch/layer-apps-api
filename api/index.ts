@@ -2,7 +2,9 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import type { Request, Response } from 'express';
+import { static as expressStatic } from 'express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { getAbsoluteFSPath } from 'swagger-ui-dist';
 
 import { AppModule } from '../src/app.module';
 
@@ -14,6 +16,12 @@ async function bootstrap() {
   }
 
   const app = await NestFactory.create(AppModule);
+  const expressInstance = app.getHttpAdapter().getInstance();
+
+  // =========================================================
+  // CONFIG
+  // =========================================================
+
   const configService = app.get(ConfigService);
 
   const nodeEnv = configService.get<string>('NODE_ENV') ?? 'development';
@@ -29,6 +37,10 @@ async function bootstrap() {
       'CORS_ORIGINS tidak boleh menggunakan wildcard (*) pada production.',
     );
   }
+
+  // =========================================================
+  // CORS
+  // =========================================================
 
   app.enableCors({
     origin: isProduction
@@ -51,7 +63,56 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
   });
 
+  // =========================================================
+  // GLOBAL API PREFIX
+  // =========================================================
+
   app.setGlobalPrefix('api');
+
+  // =========================================================
+  // EXPRESS SECURITY
+  // =========================================================
+
+  expressInstance.disable('x-powered-by');
+
+  expressInstance.use((_: Request, response: Response, next: Function) => {
+    response.setHeader('Cache-Control', 'no-store');
+    response.setHeader('Pragma', 'no-cache');
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    response.setHeader('X-Frame-Options', 'DENY');
+    response.setHeader('Referrer-Policy', 'no-referrer');
+    response.setHeader(
+      'Permissions-Policy',
+      'geolocation=(), microphone=(), camera=()',
+    );
+
+    next();
+  });
+
+  // =========================================================
+  // VALIDATION
+  // =========================================================
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
+
+  // =========================================================
+  // SWAGGER STATIC ASSETS
+  // =========================================================
+
+  const swaggerAssetsPath = getAbsoluteFSPath();
+
+  expressInstance.use('/docs', expressStatic(swaggerAssetsPath));
+
+  // =========================================================
+  // SWAGGER
+  // =========================================================
+
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Layer Apps API')
     .setDescription('Layer Apps Description')
@@ -64,36 +125,10 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, swaggerDocument, {
     useGlobalPrefix: false,
   });
-  
-  const expressInstance = app.getHttpAdapter().getInstance();
 
-  expressInstance.disable('x-powered-by');
-
-  app.use((_, response, next) => {
-    response.setHeader('Cache-Control', 'no-store');
-    response.setHeader('Pragma', 'no-cache');
-
-    response.setHeader('X-Content-Type-Options', 'nosniff');
-
-    response.setHeader('X-Frame-Options', 'DENY');
-
-    response.setHeader('Referrer-Policy', 'no-referrer');
-
-    response.setHeader(
-      'Permissions-Policy',
-      'geolocation=(), microphone=(), camera=()',
-    );
-
-    next();
-  });
-
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
-      forbidNonWhitelisted: true,
-    }),
-  );
+  // =========================================================
+  // INITIALIZE
+  // =========================================================
 
   await app.init();
 
@@ -103,10 +138,15 @@ async function bootstrap() {
   console.log('LayerApps API initialized');
   console.log(`Environment : ${nodeEnv}`);
   console.log(`CORS Origins: ${corsOrigins.join(', ')}`);
+  console.log('Swagger     : /docs');
   console.log('======================================');
 
   return cachedApp;
 }
+
+// =========================================================
+// CORS PARSER
+// =========================================================
 
 function parseCorsOrigins(value?: string): string[] {
   if (!value) {
@@ -123,13 +163,19 @@ function parseCorsOrigins(value?: string): string[] {
     .filter(Boolean);
 }
 
+// =========================================================
+// VERCEL HANDLER
+// =========================================================
+
 export default async function handler(req: Request, res: Response) {
   try {
     const app = await bootstrap();
+
     return app(req, res);
   } catch (err) {
     console.error('Bootstrap failed:', err);
-    res.status(500).json({
+
+    return res.status(500).json({
       message: 'Internal server error during initialization',
     });
   }

@@ -83,6 +83,9 @@ importers:
       streamifier:
         specifier: ^0.1.1
         version: 0.1.1
+      swagger-ui-dist:
+        specifier: ^5.32.15
+        version: 5.32.15
       swagger-ui-express:
         specifier: ^5.0.1
         version: 5.0.1(express@4.19.2)

@@ -49,6 +49,7 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "streamifier": "^0.1.1",
+    "swagger-ui-dist": "^5.32.15",
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
