@@ -5,7 +5,7 @@ import { join } from 'path';
 import { SwaggerModule, DocumentBuilder, OpenAPIObject } from '@nestjs/swagger';
 
 import { ConfigService } from '@nestjs/config';
-import { ValidationPipe } from '@nestjs/common';
+// import { ValidationPipe } from '@nestjs/common';
 
 import { AppModule } from './app.module';
 
@@ -171,6 +171,7 @@ function parseCorsOrigins(value?: string): string[] {
       'http://localhost:3000',
       'http://localhost:5173',
       'https://layer-apps.vercel.app',
+      'https://layerapps.garudacore.tech',
     ];
   }
 
