@@ -94,13 +94,13 @@ async function bootstrap() {
   // VALIDATION
   // ================================
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
-      forbidNonWhitelisted: true,
-    }),
-  );
+  // app.useGlobalPipes(
+  //   new ValidationPipe({
+  //     whitelist: true,
+  //     transform: true,
+  //     forbidNonWhitelisted: true,
+  //   }),
+  // );
 
   // ================================
   // SWAGGER

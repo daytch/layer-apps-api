@@ -5,6 +5,7 @@ import { join } from 'path';
 import { SwaggerModule, DocumentBuilder, OpenAPIObject } from '@nestjs/swagger';
 
 import { ConfigService } from '@nestjs/config';
+import { ValidationPipe } from '@nestjs/common';
 
 import { AppModule } from './app.module';
 
@@ -130,6 +131,18 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, swaggerDocument, {
     useGlobalPrefix: false,
   });
+
+  // =========================================================
+  // VALIDATION
+  // =========================================================
+
+  // app.useGlobalPipes(
+  //   new ValidationPipe({
+  //     whitelist: true,
+  //     transform: true,
+  //     forbidNonWhitelisted: true,
+  //   }),
+  // );
 
   // =========================================================
   // PORT
