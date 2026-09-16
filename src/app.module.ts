@@ -40,6 +40,7 @@ import configuration from './configs/configuration';
     UsersModule,
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public/images'),
+      serveRoot: '/images',
     }),
     RoleModule,
     CoopModule,
