@@ -2,7 +2,6 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import type { Request, Response } from 'express';
-import { static as expressStatic } from 'express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { getAbsoluteFSPath } from 'swagger-ui-dist';
 
@@ -16,11 +15,8 @@ async function bootstrap() {
   }
 
   const app = await NestFactory.create(AppModule);
-  const expressInstance = app.getHttpAdapter().getInstance();
 
-  // =========================================================
-  // CONFIG
-  // =========================================================
+  const expressInstance = app.getHttpAdapter().getInstance();
 
   const configService = app.get(ConfigService);
 
@@ -38,9 +34,9 @@ async function bootstrap() {
     );
   }
 
-  // =========================================================
+  // ================================
   // CORS
-  // =========================================================
+  // ================================
 
   app.enableCors({
     origin: isProduction
@@ -63,24 +59,29 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
   });
 
-  // =========================================================
-  // GLOBAL API PREFIX
-  // =========================================================
+  // ================================
+  // GLOBAL PREFIX
+  // ================================
 
   app.setGlobalPrefix('api');
 
-  // =========================================================
-  // EXPRESS SECURITY
-  // =========================================================
+  // ================================
+  // SECURITY
+  // ================================
 
   expressInstance.disable('x-powered-by');
 
-  expressInstance.use((_: Request, response: Response, next: Function) => {
+  expressInstance.use((_: Request, response: Response, next: () => void) => {
     response.setHeader('Cache-Control', 'no-store');
+
     response.setHeader('Pragma', 'no-cache');
+
     response.setHeader('X-Content-Type-Options', 'nosniff');
+
     response.setHeader('X-Frame-Options', 'DENY');
+
     response.setHeader('Referrer-Policy', 'no-referrer');
+
     response.setHeader(
       'Permissions-Policy',
       'geolocation=(), microphone=(), camera=()',
@@ -89,9 +90,9 @@ async function bootstrap() {
     next();
   });
 
-  // =========================================================
+  // ================================
   // VALIDATION
-  // =========================================================
+  // ================================
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -101,17 +102,9 @@ async function bootstrap() {
     }),
   );
 
-  // =========================================================
-  // SWAGGER STATIC ASSETS
-  // =========================================================
-
-  const swaggerAssetsPath = getAbsoluteFSPath();
-
-  expressInstance.use('/docs', expressStatic(swaggerAssetsPath));
-
-  // =========================================================
+  // ================================
   // SWAGGER
-  // =========================================================
+  // ================================
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Layer Apps API')
@@ -124,11 +117,15 @@ async function bootstrap() {
 
   SwaggerModule.setup('docs', app, swaggerDocument, {
     useGlobalPrefix: false,
+
+    customSwaggerUiPath: getAbsoluteFSPath(),
+
+    customSiteTitle: 'Layer Apps API',
   });
 
-  // =========================================================
-  // INITIALIZE
-  // =========================================================
+  // ================================
+  // INIT
+  // ================================
 
   await app.init();
 
@@ -144,10 +141,6 @@ async function bootstrap() {
   return cachedApp;
 }
 
-// =========================================================
-// CORS PARSER
-// =========================================================
-
 function parseCorsOrigins(value?: string): string[] {
   if (!value) {
     return [
@@ -162,10 +155,6 @@ function parseCorsOrigins(value?: string): string[] {
     .map((origin) => origin.trim())
     .filter(Boolean);
 }
-
-// =========================================================
-// VERCEL HANDLER
-// =========================================================
 
 export default async function handler(req: Request, res: Response) {
   try {
