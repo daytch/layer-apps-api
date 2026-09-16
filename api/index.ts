@@ -147,6 +147,7 @@ function parseCorsOrigins(value?: string): string[] {
       'http://localhost:3000',
       'http://localhost:5173',
       'https://layer-apps.vercel.app',
+      'https://layerapps.garudacore.tech',
     ];
   }
 
