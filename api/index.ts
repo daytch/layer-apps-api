@@ -2,6 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import type { Request, Response } from 'express';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 import { AppModule } from '../src/app.module';
 
@@ -51,7 +52,19 @@ async function bootstrap() {
   });
 
   app.setGlobalPrefix('api');
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Layer Apps API')
+    .setDescription('Layer Apps Description')
+    .setVersion('0.1')
+    .addBearerAuth()
+    .build();
 
+  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+
+  SwaggerModule.setup('docs', app, swaggerDocument, {
+    useGlobalPrefix: false,
+  });
+  
   const expressInstance = app.getHttpAdapter().getInstance();
 
   expressInstance.disable('x-powered-by');
@@ -111,7 +124,7 @@ function parseCorsOrigins(value?: string): string[] {
 }
 
 export default async function handler(req: Request, res: Response) {
-   try {
+  try {
     const app = await bootstrap();
     return app(req, res);
   } catch (err) {
